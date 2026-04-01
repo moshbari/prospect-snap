@@ -8,9 +8,13 @@ Thumbs.db
 *.swp
 *.swo
 
-# Node (if added later)
+# Node
 node_modules/
 package-lock.json
+
+# Build artifacts (keep styles.css which is the compiled output)
+BUILD_SUMMARY.txt
+build.js
 
 # Environment
 .env

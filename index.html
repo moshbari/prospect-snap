@@ -5,11 +5,23 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#F9FAFB" id="themeColor">
 <title>ProspectSnap</title>
-<!-- v3.1 - Email follow-up system -->
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- v3.2 - Performance optimized -->
+<!-- Preconnect to external origins for faster resource loading -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- Pre-compiled Tailwind CSS (replaces runtime CDN compiler) -->
+<link rel="stylesheet" href="styles.css">
+<!-- Fonts with display=swap so text is visible immediately -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" media="print" onload="this.media='all'">
+<!-- Fallback for non-JS environments -->
+<noscript>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</noscript>
+<!-- Supabase SDK deferred so it doesn't block first paint -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#F9FAFB;color:#0F172A;min-height:100vh}
@@ -666,18 +678,23 @@ html.dark .smart-paste-section{background:linear-gradient(to right,rgba(139,92,2
 </div>
 
 <script>
-console.log("Starting ProspectSnap v3.1...");
+console.log("Starting ProspectSnap v3.2...");
 
 var SUPABASE_URL = "https://yuqeqricenygpsrdfswx.supabase.co";
 var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1cWVxcmljZW55Z3BzcmRmc3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwOTY1MjIsImV4cCI6MjA3MjY3MjUyMn0.yK9xBR-wk5wtBVk6_ne2qqlbYN1dIpM9kVdGWPEBLG8";
 
 var db = null;
-try {
-  db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-  console.log("Database connected");
-} catch(err) {
-  console.error("DB Error:", err);
+function initSupabase() {
+  if (typeof supabase !== "undefined" && !db) {
+    try {
+      db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+      console.log("Database connected");
+    } catch(err) {
+      console.error("DB Error:", err);
+    }
+  }
 }
+initSupabase();
 
 var $ = function(id) { return document.getElementById(id); };
 
@@ -1232,7 +1249,12 @@ function init() {
   console.log("Init starting...");
   S.theme = localStorage.getItem("ps_theme") || "light"; applyTheme();
   setTimeout(function() { if ($("loadingScreen").classList.contains("active")) { show("authScreen"); } }, 4000);
-  if (!db) { show("authScreen"); return; }
+  initSupabase();
+  if (!db) {
+    // Supabase SDK may still be loading (deferred), retry shortly
+    setTimeout(function() { initSupabase(); if (db) init(); else show("authScreen"); }, 200);
+    return;
+  }
   db.auth.getSession().then(function(r) {
     if (r.data.session) {
       S.user = r.data.session.user;
