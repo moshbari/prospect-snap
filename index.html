@@ -155,6 +155,36 @@ html.dark .phone-add-btn{background:rgba(34,197,94,0.2);border-color:rgba(34,197
 .phones-container{margin-top:8px}
 .chip-action-wrapper{position:relative;display:inline-flex}
 html.dark .smart-paste-section{background:linear-gradient(to right,rgba(139,92,246,0.1),rgba(168,85,247,0.1));border-color:rgba(139,92,246,0.3)}
+/* Source tags */
+.source-tag{padding:8px 14px;border-radius:9999px;font-size:12px;font-weight:600;border:1px solid;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all 0.2s}
+.source-tag.inactive{background:#F1F5F9;border-color:#E2E8F0;color:#94A3B8;opacity:0.7}
+html.dark .source-tag.inactive{background:#1E293B;border-color:#334155;color:#64748B}
+.source-tag.active[data-source="instagram"]{background:linear-gradient(135deg,#E1306C,#F77737);border-color:#E1306C;color:#fff}
+.source-tag.active[data-source="facebook"]{background:#1877F2;border-color:#1877F2;color:#fff}
+.source-tag.active[data-source="linkedin"]{background:#0A66C2;border-color:#0A66C2;color:#fff}
+.source-tag.active[data-source="whatsapp"]{background:#25D366;border-color:#25D366;color:#fff}
+.source-tag.active[data-source="twitter"]{background:#1DA1F2;border-color:#1DA1F2;color:#fff}
+.source-tag.active[data-source="tiktok"]{background:#010101;border-color:#010101;color:#fff}
+.source-tag.active[data-source="email"]{background:#EA580C;border-color:#EA580C;color:#fff}
+.source-tag.active[data-source="referral"]{background:#8B5CF6;border-color:#8B5CF6;color:#fff}
+.source-tag.active[data-source="cold_call"]{background:#0891B2;border-color:#0891B2;color:#fff}
+.source-tag.active[data-source="website"]{background:#059669;border-color:#059669;color:#fff}
+.source-tag.active[data-source="other"]{background:#64748B;border-color:#64748B;color:#fff}
+.badge-source{font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:0.5px}
+.badge-source-instagram{background:linear-gradient(135deg,rgba(225,48,108,0.15),rgba(247,119,55,0.15));color:#E1306C}
+.badge-source-facebook{background:rgba(24,119,242,0.1);color:#1877F2}
+.badge-source-linkedin{background:rgba(10,102,194,0.1);color:#0A66C2}
+.badge-source-whatsapp{background:rgba(37,211,102,0.1);color:#128C7E}
+.badge-source-twitter{background:rgba(29,161,242,0.1);color:#1DA1F2}
+.badge-source-tiktok{background:rgba(1,1,1,0.1);color:#010101}
+html.dark .badge-source-tiktok{background:rgba(255,255,255,0.1);color:#fff}
+.badge-source-email{background:rgba(234,88,12,0.1);color:#EA580C}
+.badge-source-referral{background:rgba(139,92,246,0.1);color:#8B5CF6}
+.badge-source-cold_call{background:rgba(8,145,178,0.1);color:#0891B2}
+.badge-source-website{background:rgba(5,150,105,0.1);color:#059669}
+.badge-source-other{background:rgba(100,116,139,0.1);color:#64748B}
+.source-auto-badge{font-size:10px;background:rgba(139,92,246,0.1);color:#8B5CF6;padding:2px 8px;border-radius:6px;font-weight:600;margin-left:4px}
+html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 </style>
 </head>
 <body>
@@ -366,6 +396,25 @@ html.dark .smart-paste-section{background:linear-gradient(to right,rgba(139,92,2
 </button>
 </div>
 <div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Lead Source</label>
+<div class="flex flex-wrap gap-2" id="sourceTags">
+<button type="button" class="source-tag inactive" data-source="instagram">📸 Instagram</button>
+<button type="button" class="source-tag inactive" data-source="facebook">👤 Facebook</button>
+<button type="button" class="source-tag inactive" data-source="linkedin">💼 LinkedIn</button>
+<button type="button" class="source-tag inactive" data-source="whatsapp">💬 WhatsApp</button>
+<button type="button" class="source-tag inactive" data-source="twitter">🐦 X/Twitter</button>
+<button type="button" class="source-tag inactive" data-source="tiktok">🎵 TikTok</button>
+<button type="button" class="source-tag inactive" data-source="email">📧 Email</button>
+<button type="button" class="source-tag inactive" data-source="referral">🤝 Referral</button>
+<button type="button" class="source-tag inactive" data-source="cold_call">📞 Cold Call</button>
+<button type="button" class="source-tag inactive" data-source="website">🌐 Website</button>
+<button type="button" class="source-tag inactive" data-source="other">📌 Other</button>
+</div>
+<p class="text-xs text-slate-400 mt-1" id="sourceAutoHint" style="display:none">
+<span class="source-auto-badge">Auto-detected</span> from profile link
+</p>
+</div>
+<div>
 <label class="block text-xs font-bold text-slate-400 uppercase mb-3">Status</label>
 <div class="flex flex-wrap gap-2" id="statusTags">
 <button type="button" class="tag tag-hot" data-status="hot">🔥 Hot</button>
@@ -421,11 +470,25 @@ html.dark .smart-paste-section{background:linear-gradient(to right,rgba(139,92,2
 <div class="mb-6">
 <input class="input-field" id="searchInput" type="text" placeholder="🔍 Search prospects...">
 </div>
-<div class="flex gap-2 overflow-x-auto no-scrollbar pb-4" id="filterPills">
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-2" id="filterPills">
 <button class="pill pill-active" data-filter="all">All</button>
 <button class="pill pill-inactive" data-filter="hot">🔥 Hot</button>
 <button class="pill pill-inactive" data-filter="warm">☀️ Warm</button>
 <button class="pill pill-inactive" data-filter="cold">❄️ Cold</button>
+</div>
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-4" id="sourceFilterPills">
+<button class="pill pill-active" data-source-filter="all" style="font-size:12px;padding:8px 14px">All Sources</button>
+<button class="pill pill-inactive" data-source-filter="instagram" style="font-size:12px;padding:8px 14px">📸 IG</button>
+<button class="pill pill-inactive" data-source-filter="facebook" style="font-size:12px;padding:8px 14px">👤 FB</button>
+<button class="pill pill-inactive" data-source-filter="linkedin" style="font-size:12px;padding:8px 14px">💼 LI</button>
+<button class="pill pill-inactive" data-source-filter="whatsapp" style="font-size:12px;padding:8px 14px">💬 WA</button>
+<button class="pill pill-inactive" data-source-filter="twitter" style="font-size:12px;padding:8px 14px">🐦 X</button>
+<button class="pill pill-inactive" data-source-filter="tiktok" style="font-size:12px;padding:8px 14px">🎵 TT</button>
+<button class="pill pill-inactive" data-source-filter="email" style="font-size:12px;padding:8px 14px">📧 Email</button>
+<button class="pill pill-inactive" data-source-filter="referral" style="font-size:12px;padding:8px 14px">🤝 Ref</button>
+<button class="pill pill-inactive" data-source-filter="cold_call" style="font-size:12px;padding:8px 14px">📞 Call</button>
+<button class="pill pill-inactive" data-source-filter="website" style="font-size:12px;padding:8px 14px">🌐 Web</button>
+<button class="pill pill-inactive" data-source-filter="other" style="font-size:12px;padding:8px 14px">📌 Other</button>
 </div>
 <div class="space-y-4" id="prospectList">
 <p class="text-slate-400 text-sm text-center py-8">No prospects yet</p>
@@ -589,6 +652,21 @@ html.dark .smart-paste-section{background:linear-gradient(to right,rgba(139,92,2
 <span class="material-icons-round" style="font-size:16px">add</span> Add Phone
 </button>
 </div>
+<div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Lead Source</label>
+<div class="flex flex-wrap gap-2" id="editSourceTags">
+<button type="button" class="source-tag inactive" data-source="instagram">📸 Instagram</button>
+<button type="button" class="source-tag inactive" data-source="facebook">👤 Facebook</button>
+<button type="button" class="source-tag inactive" data-source="linkedin">💼 LinkedIn</button>
+<button type="button" class="source-tag inactive" data-source="whatsapp">💬 WhatsApp</button>
+<button type="button" class="source-tag inactive" data-source="twitter">🐦 X/Twitter</button>
+<button type="button" class="source-tag inactive" data-source="tiktok">🎵 TikTok</button>
+<button type="button" class="source-tag inactive" data-source="email">📧 Email</button>
+<button type="button" class="source-tag inactive" data-source="referral">🤝 Referral</button>
+<button type="button" class="source-tag inactive" data-source="cold_call">📞 Cold Call</button>
+<button type="button" class="source-tag inactive" data-source="website">🌐 Website</button>
+<button type="button" class="source-tag inactive" data-source="other">📌 Other</button>
+</div>
+</div>
 <div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Status</label>
 <div class="flex flex-wrap gap-2" id="editStatusTags">
 <button type="button" class="tag tag-hot" data-status="hot">🔥 Hot</button>
@@ -705,16 +783,47 @@ var S = {
   prospects: [],
   activities: [],
   filter: "all",
+  sourceFilter: "all",
   sort: "newest",
   search: "",
   status: "cold",
   stage: "new",
+  source: "",
   editStatus: "cold",
   editStage: "new",
+  editSource: "",
   theme: "light",
   isPlatformAdmin: false,
   tenants: []
 };
+
+// Auto-detect lead source from a URL
+function detectSource(url) {
+  if (!url) return "";
+  url = url.toLowerCase();
+  if (url.indexOf("instagram.com") !== -1 || url.indexOf("instagr.am") !== -1) return "instagram";
+  if (url.indexOf("facebook.com") !== -1 || url.indexOf("fb.com") !== -1 || url.indexOf("fb.me") !== -1) return "facebook";
+  if (url.indexOf("linkedin.com") !== -1 || url.indexOf("lnkd.in") !== -1) return "linkedin";
+  if (url.indexOf("wa.me") !== -1 || url.indexOf("whatsapp.com") !== -1) return "whatsapp";
+  if (url.indexOf("twitter.com") !== -1 || url.indexOf("x.com") !== -1 || url.indexOf("t.co") !== -1) return "twitter";
+  if (url.indexOf("tiktok.com") !== -1 || url.indexOf("vm.tiktok.com") !== -1) return "tiktok";
+  return "";
+}
+
+function renderSourceTags(containerId, activeSource) {
+  document.querySelectorAll("#" + containerId + " .source-tag").forEach(function(t) {
+    if (t.dataset.source === activeSource) {
+      t.classList.add("active"); t.classList.remove("inactive");
+    } else {
+      t.classList.remove("active"); t.classList.add("inactive");
+    }
+  });
+}
+
+function getSourceLabel(source) {
+  var labels = {instagram:"Instagram",facebook:"Facebook",linkedin:"LinkedIn",whatsapp:"WhatsApp",twitter:"X/Twitter",tiktok:"TikTok",email:"Email",referral:"Referral",cold_call:"Cold Call",website:"Website",other:"Other"};
+  return labels[source] || "";
+}
 
 function applyTheme() {
   var isDark = S.theme === "dark";
@@ -880,6 +989,7 @@ function renderEmailChips(emails) {
 function renderList() {
   var filtered = S.prospects.filter(function(p) {
     if (S.filter !== "all" && p.status !== S.filter) return false;
+    if (S.sourceFilter !== "all" && (p.source || "") !== S.sourceFilter) return false;
     if (S.search) {
       var q = S.search.toLowerCase();
       if ((p.name || "").toLowerCase().indexOf(q) === -1 && (p.profile_link || "").toLowerCase().indexOf(q) === -1) return false;
@@ -905,6 +1015,7 @@ function renderList() {
       if (phones.length > 0) { html += renderPhoneChips(phones); }
       html += "<div class='flex gap-2 mt-2'>";
       html += "<span class='badge badge-" + (p.status || "cold") + "'>" + (p.status || "cold").toUpperCase() + "</span>";
+      if (p.source) html += "<span class='badge-source badge-source-" + p.source + "'>" + getSourceLabel(p.source) + "</span>";
       if (p.follow_up_date && p.follow_up_date < today) html += "<span class='badge badge-overdue'>OVERDUE</span>";
       if (p.follow_up_date && p.follow_up_date === today) html += "<span class='badge badge-today'>TODAY</span>";
       html += "</div></div>";
@@ -1105,6 +1216,7 @@ function saveProspect() {
   $("saveBtn").disabled = true;
   db.from("prospect_snap_prospects").insert({
     team_id: S.team.id, profile_link: link || null, name: name, status: S.status, pipeline_stage: S.stage,
+    source: S.source || null,
     notes: notes, follow_up_date: followup || null, emails: emails, phones: phones,
     saved_by: S.user.id, saved_by_name: S.member ? S.member.display_name : "Unknown"
   }).select().single().then(function(r) {
@@ -1118,6 +1230,7 @@ function saveProspect() {
     if (activityResult.data) { S.activities.unshift(activityResult.data); if (S.activities.length > 50) S.activities.pop(); renderActivity(); }
     toast("Saved!");
     $("profileLink").value = ""; $("prospectName").value = ""; $("notes").value = ""; $("followupDate").value = "";
+    S.source = ""; renderSourceTags("sourceTags", ""); $("sourceAutoHint").style.display = "none";
     clearEmailForm(); clearPhoneForm(); updateStats(); renderList(); renderPipeline(); switchTab("list");
   }).catch(function(e) { toast(e.message || "Error", true); }).finally(function() { $("saveBtn").disabled = false; });
 }
@@ -1127,8 +1240,8 @@ window.editProspect = function(id) {
   if (!p) return;
   $("editId").value = p.id; $("editLink").value = p.profile_link || ""; $("editName").value = p.name || "";
   $("editNotes").value = p.notes || ""; $("editFollowup").value = p.follow_up_date || "";
-  S.editStatus = p.status || "cold"; S.editStage = p.pipeline_stage || "new";
-  setEditEmails(p.emails || []); setEditPhones(p.phones || []); renderEditTags();
+  S.editStatus = p.status || "cold"; S.editStage = p.pipeline_stage || "new"; S.editSource = p.source || "";
+  setEditEmails(p.emails || []); setEditPhones(p.phones || []); renderEditTags(); renderSourceTags("editSourceTags", S.editSource);
   $("editModal").classList.add("show"); $("stageModal").classList.remove("show");
 };
 
@@ -1145,7 +1258,8 @@ function updateProspect() {
   $("updateBtn").disabled = true;
   db.from("prospect_snap_prospects").update({
     profile_link: $("editLink").value.trim(), name: $("editName").value.trim(), status: S.editStatus,
-    pipeline_stage: S.editStage, notes: $("editNotes").value.trim(), follow_up_date: $("editFollowup").value || null,
+    pipeline_stage: S.editStage, source: S.editSource || null,
+    notes: $("editNotes").value.trim(), follow_up_date: $("editFollowup").value || null,
     emails: getEditEmailsFromForm(), phones: getEditPhonesFromForm()
   }).eq("id", id).select().single().then(function(r) {
     if (r.error) throw r.error;
@@ -1296,6 +1410,37 @@ document.addEventListener("DOMContentLoaded", function() {
     $("loginForm").classList.toggle("hidden", login); $("signupForm").classList.toggle("hidden", !login);
     $("authSwitchText").textContent = login ? "Have an account?" : "Don't have an account?";
     $("switchAuth").textContent = login ? "Sign In" : "Sign Up"; $("authError").classList.add("hidden");
+  };
+  $("sourceTags").onclick = function(e) { var t = e.target.closest(".source-tag"); if (t) { S.source = (S.source === t.dataset.source) ? "" : t.dataset.source; renderSourceTags("sourceTags", S.source); $("sourceAutoHint").style.display = "none"; } };
+  $("editSourceTags").onclick = function(e) { var t = e.target.closest(".source-tag"); if (t) { S.editSource = (S.editSource === t.dataset.source) ? "" : t.dataset.source; renderSourceTags("editSourceTags", S.editSource); } };
+  // Auto-detect source from profile link input
+  $("profileLink").addEventListener("input", function() {
+    var detected = detectSource(this.value.trim());
+    if (detected && !S.source) {
+      S.source = detected; renderSourceTags("sourceTags", S.source);
+      $("sourceAutoHint").style.display = "block";
+    } else if (!this.value.trim()) {
+      if ($("sourceAutoHint").style.display === "block") { S.source = ""; renderSourceTags("sourceTags", ""); }
+      $("sourceAutoHint").style.display = "none";
+    }
+  });
+  // Also detect on paste
+  $("profileLink").addEventListener("paste", function() {
+    var self = this;
+    setTimeout(function() {
+      var detected = detectSource(self.value.trim());
+      if (detected) {
+        S.source = detected; renderSourceTags("sourceTags", S.source);
+        $("sourceAutoHint").style.display = "block";
+      }
+    }, 50);
+  });
+  // Source filter pills
+  $("sourceFilterPills").onclick = function(e) {
+    var p = e.target.closest(".pill"); if (!p) return;
+    document.querySelectorAll("#sourceFilterPills .pill").forEach(function(x) { x.classList.remove("pill-active"); x.classList.add("pill-inactive"); });
+    p.classList.add("pill-active"); p.classList.remove("pill-inactive");
+    S.sourceFilter = p.dataset.sourceFilter; renderList();
   };
   $("statusTags").onclick = function(e) { var t = e.target.closest(".tag"); if (t) { S.status = t.dataset.status; renderStatusTags(); } };
   $("stageTags").onclick = function(e) { var t = e.target.closest(".stage-tag"); if (t) { S.stage = t.dataset.stage; renderStageTags(); } };
