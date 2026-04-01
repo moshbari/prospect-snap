@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#F9FAFB" id="themeColor">
+<title>ProspectSnap</title>
+<!-- v3.1 - Email follow-up system -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#F9FAFB;color:#0F172A;min-height:100vh}
+html.dark,html.dark body{background:#0F172A;color:#F1F5F9}
+.screen{display:none;flex-direction:column;min-height:100vh}
+.screen.active{display:flex}
+.input-field{width:100%;padding:14px 16px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;font-size:15px;color:#0F172A;outline:none}
+.input-field:focus{border-color:#E11D48;box-shadow:0 0 0 3px rgba(225,29,72,0.1)}
+html.dark .input-field{background:#1E293B;border-color:#334155;color:#F1F5F9}
+.btn-primary{width:100%;padding:16px;background:#E11D48;color:#fff;border:none;border-radius:16px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(225,29,72,0.3)}
+.btn-primary:disabled{opacity:0.6}
+.spinner{width:24px;height:24px;border:3px solid rgba(225,29,72,0.2);border-top-color:#E11D48;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(225,29,72,0.4)}50%{box-shadow:0 0 40px rgba(225,29,72,0.6)}}
+.animate-glow{animation:glow 2s ease-in-out infinite}
+.nav-btn{flex:1;padding:12px;border-radius:12px;display:flex;justify-content:center;align-items:center;background:transparent;border:none;cursor:pointer;color:#64748B}
+.nav-btn.active{background:rgba(225,29,72,0.1);color:#E11D48}
+.stat-card{background:#fff;padding:20px;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.05);border:1px solid #F1F5F9}
+html.dark .stat-card{background:#1E293B;border-color:#334155}
+.prospect-card{background:#fff;padding:20px;border-radius:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);border:1px solid #F1F5F9;cursor:pointer}
+html.dark .prospect-card{background:#1E293B;border-color:#334155}
+.activity-card{background:#fff;padding:16px;border-radius:16px;border:1px solid #F1F5F9}
+html.dark .activity-card{background:#1E293B;border-color:#334155}
+.tag{padding:10px 16px;border-radius:9999px;font-size:14px;font-weight:600;border:1px solid;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.tag-hot{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.2);color:#DC2626}
+.tag-hot.active{background:#DC2626;border-color:#DC2626;color:#fff}
+.tag-warm{background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.2);color:#EA580C}
+.tag-warm.active{background:#EA580C;border-color:#EA580C;color:#fff}
+.tag-cold{background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.2);color:#2563EB}
+.tag-cold.active{background:#2563EB;border-color:#2563EB;color:#fff}
+.tag-customer{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.2);color:#059669}
+.tag-customer.active{background:#059669;border-color:#059669;color:#fff}
+.stage-tag{padding:10px 14px;border-radius:10px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:pointer;border:2px solid transparent;transition:all 0.2s}
+.stage-new{background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;border-color:#6366F1;box-shadow:0 4px 12px rgba(99,102,241,0.4)}
+.stage-inactive{background:#F1F5F9;color:#94A3B8;border-color:#E2E8F0;opacity:0.7}
+html.dark .stage-inactive{background:#1E293B;color:#64748B;border-color:#334155;opacity:0.6}
+.badge{font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;text-transform:uppercase}
+.badge-hot{background:rgba(239,68,68,0.1);color:#DC2626}
+.badge-warm{background:rgba(249,115,22,0.1);color:#EA580C}
+.badge-cold{background:rgba(59,130,246,0.1);color:#2563EB}
+.badge-customer{background:rgba(16,185,129,0.1);color:#059669}
+.badge-overdue{background:#DC2626;color:#fff}
+.badge-today{background:#E11D48;color:#fff}
+.count-badge{background:#E11D48;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;position:absolute;top:-4px;right:-4px}
+.pill{padding:10px 20px;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;border:none}
+.pill-inactive{background:#fff;color:#475569;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+html.dark .pill-inactive{background:#1E293B;color:#94A3B8}
+.pill-active{background:#E11D48;color:#fff;box-shadow:0 4px 12px rgba(225,29,72,0.3)}
+.alert-card{background:#FFF5F5;border:1px solid #FFE4E6;padding:20px;border-radius:16px;display:flex;align-items:flex-start;gap:16px}
+html.dark .alert-card{background:rgba(225,29,72,0.1);border-color:rgba(225,29,72,0.2)}
+.pipeline-card{background:#fff;padding:20px;border-radius:16px;border:1px solid #F1F5F9;cursor:pointer}
+html.dark .pipeline-card{background:#1E293B;border-color:#334155}
+.progress-bar{height:8px;border-radius:9999px;overflow:hidden;background:#F1F5F9}
+html.dark .progress-bar{background:#334155}
+.progress-fill{height:100%;border-radius:9999px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
+html.dark .modal-box{background:#1E293B}
+.modal-head{padding:20px 24px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff}
+html.dark .modal-head{background:#1E293B;border-color:#334155}
+.modal-close{width:36px;height:36px;background:#F1F5F9;border:none;border-radius:10px;color:#64748B;cursor:pointer;display:flex;align-items:center;justify-content:center}
+html.dark .modal-close{background:#334155}
+.modal-body{padding:24px}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:14px 24px;font-size:14px;font-weight:600;z-index:300;opacity:0;transition:all 0.3s}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.error{border-color:#DC2626;background:#FEE2E2;color:#DC2626}
+html.dark .toast{background:#1E293B;border-color:#334155}
+.theme-toggle{width:56px;height:28px;background:#E2E8F0;border-radius:9999px;cursor:pointer;position:relative}
+html.dark .theme-toggle{background:#334155}
+.theme-toggle-knob{position:absolute;top:2px;left:2px;width:24px;height:24px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:left 0.3s}
+html.dark .theme-toggle-knob{left:30px;background:#0F172A}
+.theme-toggle-knob .material-icons-round{font-size:14px;color:#F59E0B}
+.avatar-ring{padding:2px;background:linear-gradient(135deg,#E11D48,#F43F5E);border-radius:9999px;cursor:pointer}
+.avatar-inner{width:100%;height:100%;background:#fff;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-weight:700}
+html.dark .avatar-inner{background:#0F172A}
+.menu-item{padding:16px;background:#F9FAFB;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+html.dark .menu-item{background:#334155}
+.quick-date{padding:8px 12px;border-radius:8px;background:#F9FAFB;border:1px solid #E2E8F0;font-size:11px;font-weight:700;color:#64748B;cursor:pointer}
+html.dark .quick-date{background:#334155;border-color:#475569;color:#94A3B8}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.no-scrollbar::-webkit-scrollbar{display:none}
+/* Email chips styles */
+.email-chip{display:inline-flex;align-items:center;gap:6px;background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:500;margin:2px}
+html.dark .email-chip{background:rgba(59,130,246,0.2);border-color:rgba(59,130,246,0.3);color:#93C5FD}
+.email-chip .copy-btn{background:none;border:none;padding:2px;cursor:pointer;color:#3B82F6;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background 0.2s}
+.email-chip .copy-btn:hover{background:rgba(59,130,246,0.2)}
+.email-chip .copy-btn:active{background:rgba(59,130,246,0.3)}
+.email-chip .copy-btn .material-icons-round{font-size:14px}
+.email-input-row{display:flex;gap:8px;margin-bottom:8px}
+.email-input-row .input-field{flex:1}
+.email-remove-btn{background:#FEE2E2;border:none;color:#DC2626;width:40px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.email-remove-btn:hover{background:#FECACA}
+.email-paste-btn{flex-shrink:0}
+.phone-input-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.phone-input-row .input-field{flex:1;min-width:0}
+.phone-remove-btn{background:#FEE2E2;border:none;color:#DC2626;width:40px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.phone-remove-btn:hover{background:#FECACA}
+.phone-msg-btn{flex-shrink:0}
+.phone-menu{position:absolute;top:100%;right:0;margin-top:4px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);overflow:hidden;z-index:100;min-width:140px;display:none}
+.phone-menu.show{display:block}
+html.dark .phone-menu{background:#1E293B;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+.phone-menu-item{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;font-size:14px;font-weight:500;border:none;background:none;width:100%;text-align:left}
+.phone-menu-item:hover{background:#F1F5F9}
+html.dark .phone-menu-item:hover{background:#334155}
+.phone-menu-item.whatsapp{color:#25D366}
+.phone-menu-item.sms{color:#3B82F6}
+.email-add-btn{background:#DCFCE7;border:1px solid #BBF7D0;color:#16A34A;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.email-add-btn:hover{background:#BBF7D0}
+html.dark .email-add-btn{background:rgba(34,197,94,0.2);border-color:rgba(34,197,94,0.3);color:#86EFAC}
+html.dark .email-remove-btn{background:rgba(239,68,68,0.2);color:#FCA5A5}
+.emails-container{margin-top:8px}
+.phone-chip{display:inline-flex;align-items:center;gap:6px;background:#F0FDF4;border:1px solid #BBF7D0;color:#16A34A;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:500;margin:2px}
+html.dark .phone-chip{background:rgba(34,197,94,0.2);border-color:rgba(34,197,94,0.3);color:#86EFAC}
+.phone-chip .copy-btn,.phone-chip .action-btn{background:none;border:none;padding:2px;cursor:pointer;color:#16A34A;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background 0.2s}
+.phone-chip .copy-btn:hover,.phone-chip .action-btn:hover{background:rgba(34,197,94,0.2)}
+.phone-chip .copy-btn .material-icons-round,.phone-chip .action-btn .material-icons-round{font-size:14px}
+.phone-action-menu{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #E2E8F0;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.15);padding:4px;display:none;z-index:100;min-width:120px}
+.phone-action-menu.show{display:block}
+html.dark .phone-action-menu{background:#1E293B;border-color:#334155}
+.phone-action-menu .phone-action-btn{display:flex;align-items:center;gap:8px;padding:10px 12px;border:none;background:none;width:100%;text-align:left;cursor:pointer;border-radius:8px;font-size:13px;font-weight:500;color:#0F172A}
+html.dark .phone-action-menu .phone-action-btn{color:#F1F5F9}
+.phone-action-menu .phone-action-btn:hover{background:#F1F5F9}
+html.dark .phone-action-menu .phone-action-btn:hover{background:#334155}
+.phone-action-menu .phone-action-btn.whatsapp{color:#25D366}
+.phone-action-menu .phone-action-btn.sms{color:#3B82F6}
+.phone-add-btn{background:#DCFCE7;border:1px solid #BBF7D0;color:#16A34A;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.phone-add-btn:hover{background:#BBF7D0}
+html.dark .phone-add-btn{background:rgba(34,197,94,0.2);border-color:rgba(34,197,94,0.3);color:#86EFAC}
+.phones-container{margin-top:8px}
+.chip-action-wrapper{position:relative;display:inline-flex}
+html.dark .smart-paste-section{background:linear-gradient(to right,rgba(139,92,246,0.1),rgba(168,85,247,0.1));border-color:rgba(139,92,246,0.3)}
+</style>
+</head>
+<body>
+<div class="max-w-[430px] mx-auto min-h-screen relative shadow-2xl">
+
+<div class="screen active" id="loadingScreen">
+<div class="flex-1 flex items-center justify-center flex-col gap-4">
+<div class="w-16 h-16 bg-[#E11D48] rounded-2xl flex items-center justify-center shadow-lg animate-glow">
+<span class="material-icons-round text-white text-3xl">camera</span>
+</div>
+<h1 class="text-2xl font-extrabold">Prospect<span class="text-[#E11D48]">Snap</span></h1>
+<div class="spinner mt-4"></div>
+</div>
+</div>
+
+<div class="screen" id="authScreen">
+<div class="flex-1 flex flex-col justify-center px-6 py-12">
+<div class="text-center mb-10">
+<div class="w-20 h-20 bg-[#E11D48] rounded-3xl flex items-center justify-center mx-auto shadow-xl mb-6">
+<span class="material-icons-round text-white text-4xl">camera</span>
+</div>
+<h1 class="text-3xl font-extrabold">Prospect<span class="text-[#E11D48]">Snap</span></h1>
+<p class="text-slate-500 mt-2">Capture Instagram leads in one tap</p>
+</div>
+<div class="alert-card mb-6 hidden" id="authError">
+<span class="material-icons-round text-[#E11D48]">error</span>
+<span class="text-sm text-[#E11D48]" id="authErrorText"></span>
+</div>
+<form class="space-y-4" id="loginForm">
+<input class="input-field" id="loginEmail" type="email" placeholder="Email" required>
+<input class="input-field" id="loginPassword" type="password" placeholder="Password" required>
+<button class="btn-primary" type="submit" id="loginBtn">Sign In</button>
+</form>
+<form class="space-y-4 hidden" id="signupForm">
+<input class="input-field" id="signupName" placeholder="Your Name" required>
+<input class="input-field" id="signupEmail" type="email" placeholder="Email" required>
+<input class="input-field" id="signupPassword" type="password" placeholder="Password (min 6 chars)" required minlength="6">
+<input class="input-field" id="teamName" placeholder="Team/Company Name">
+<button class="btn-primary" type="submit" id="signupBtn">Create Account</button>
+</form>
+<div class="text-center mt-6 text-slate-500">
+<span id="authSwitchText">Don't have an account?</span>
+<a class="text-[#E11D48] font-bold cursor-pointer ml-1" id="switchAuth">Sign Up</a>
+</div>
+</div>
+</div>
+
+<div class="screen" id="mainScreen">
+<header class="sticky top-0 z-50 px-6 py-4 backdrop-blur-xl" id="mainHeader" style="background:rgba(249,250,251,0.8)">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-[#E11D48] rounded-lg flex items-center justify-center">
+<span class="material-icons-round text-white text-xl">camera</span>
+</div>
+<h1 class="text-xl font-extrabold">Prospect<span class="text-[#E11D48]">Snap</span></h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="theme-toggle" id="themeToggle">
+<div class="theme-toggle-knob"><span class="material-icons-round">light_mode</span></div>
+</div>
+<div class="avatar-ring" id="avatarBtn">
+<div class="avatar-inner w-9 h-9 text-sm" id="avatarInitial">M</div>
+</div>
+</div>
+</div>
+</header>
+
+<nav class="px-6 py-4">
+<div class="p-1.5 rounded-2xl flex items-center justify-between" id="navBar" style="background:#F1F5F9">
+<button class="nav-btn active" data-tab="dashboard"><span class="material-icons-round">home</span></button>
+<button class="nav-btn" data-tab="capture"><span class="material-icons-round">add_circle</span></button>
+<button class="nav-btn relative" data-tab="list"><span class="material-icons-round">list_alt</span><span class="count-badge" id="listBadge">0</span></button>
+<button class="nav-btn" data-tab="pipeline"><span class="material-icons-round">ads_click</span></button>
+<button class="nav-btn" data-tab="activity"><span class="material-icons-round">campaign</span></button>
+</div>
+</nav>
+
+<div class="tab-content active px-6 pb-24" id="dashboardContent">
+<section class="mt-4 mb-8">
+<h2 class="text-3xl font-extrabold leading-tight" id="greetingText">Good morning! 👋</h2>
+<p class="text-slate-500 mt-1">Let's capture some leads today.</p>
+</section>
+<section class="mb-8">
+<div class="alert-card">
+<div class="w-10 h-10 rounded-xl bg-[#E11D48]/10 flex items-center justify-center flex-shrink-0">
+<span class="material-icons-round text-[#E11D48]">warning</span>
+</div>
+<div>
+<h3 class="font-bold" id="alertTitle">0 prospects need attention</h3>
+<p class="text-sm text-[#E11D48]/80 mt-0.5" id="alertSubtitle">All caught up!</p>
+</div>
+</div>
+</section>
+<section class="grid grid-cols-2 gap-4">
+<div class="stat-card cursor-pointer hover:scale-105 transition-transform" onclick="filterByOverdue()">
+<span class="material-icons-round text-amber-500 text-2xl mb-4">error</span>
+<span class="text-3xl font-extrabold block" id="statOverdue">0</span>
+<span class="text-xs font-bold text-slate-400 uppercase">Overdue</span>
+</div>
+<div class="stat-card cursor-pointer hover:scale-105 transition-transform" onclick="filterByDueToday()">
+<span class="material-icons-round text-indigo-500 text-2xl mb-4">calendar_today</span>
+<span class="text-3xl font-extrabold block" id="statToday">0</span>
+<span class="text-xs font-bold text-slate-400 uppercase">Due Today</span>
+</div>
+<div class="stat-card cursor-pointer hover:scale-105 transition-transform" onclick="filterByHot()">
+<span class="material-icons-round text-orange-500 text-2xl mb-4">local_fire_department</span>
+<span class="text-3xl font-extrabold block" id="statHot">0</span>
+<span class="text-xs font-bold text-slate-400 uppercase">Hot Leads</span>
+</div>
+<div class="stat-card cursor-pointer hover:scale-105 transition-transform" onclick="filterByAll()">
+<span class="material-icons-round text-emerald-500 text-2xl mb-4">bar_chart</span>
+<span class="text-3xl font-extrabold block" id="statTotal">0</span>
+<span class="text-xs font-bold text-slate-400 uppercase">Total Leads</span>
+</div>
+</section>
+<section class="mt-10">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold">Recent Activity</h3>
+<button class="text-sm font-semibold text-[#E11D48]" id="viewAllActivity">View All</button>
+</div>
+<div class="space-y-3" id="recentActivity">
+<p class="text-slate-400 text-sm text-center py-4">No recent activity</p>
+</div>
+</section>
+</div>
+
+<div class="tab-content px-6 pb-32" id="captureContent">
+<div class="mb-6">
+<h2 class="text-2xl font-bold mb-1">Add New Prospect</h2>
+<p class="text-slate-500 text-sm">Fill in the details to track a new lead.</p>
+</div>
+<!-- Smart Paste Section -->
+<div class="smart-paste-section mb-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-2xl">
+<p class="text-xs font-bold text-violet-600 uppercase mb-2">Quick Add from Email</p>
+<p class="text-xs text-slate-500 mb-3">Copy contact like "Name &lt;email@example.com&gt;" and paste here</p>
+<button type="button" class="w-full bg-gradient-to-r from-violet-500 to-purple-500 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2" id="smartPasteBtn">
+<span class="material-icons-round">auto_fix_high</span> Smart Paste Contact
+</button>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Profile Link <span class="font-normal normal-case">(optional)</span></label>
+<div class="flex gap-2">
+<input class="input-field flex-1" id="profileLink" type="text" placeholder="Instagram, Facebook, LinkedIn, etc.">
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center copy-btn" data-target="profileLink" title="Copy">
+<span class="material-icons-round">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center paste-btn" data-target="profileLink" title="Paste">
+<span class="material-icons-round">content_paste</span>
+</button>
+<button type="button" class="bg-gradient-to-r from-violet-500 to-purple-500 text-white px-4 rounded-xl" id="visitBtn">
+<span class="material-icons-round">open_in_new</span>
+</button>
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Full Name</label>
+<div class="flex gap-2">
+<input class="input-field flex-1" id="prospectName" type="text" placeholder="Their name">
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center copy-btn" data-target="prospectName" title="Copy">
+<span class="material-icons-round">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center paste-btn" data-target="prospectName" title="Paste">
+<span class="material-icons-round">content_paste</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center" id="nameVoiceBtn">
+<span class="material-icons-round">mic</span>
+</button>
+</div>
+</div>
+<!-- Email Section -->
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Email Addresses</label>
+<div id="emailInputs">
+<div class="email-input-row">
+<input class="input-field" type="email" placeholder="email@example.com">
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-copy-btn" title="Copy Email">
+<span class="material-icons-round">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-paste-btn" title="Paste Email">
+<span class="material-icons-round">content_paste</span>
+</button>
+</div>
+</div>
+<button type="button" class="email-add-btn mt-2" id="addEmailBtn">
+<span class="material-icons-round" style="font-size:16px">add</span> Add Email
+</button>
+</div>
+<!-- Phone Section -->
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Phone Numbers</label>
+<div id="phoneInputs">
+<div class="phone-input-row">
+<input class="input-field flex-1" type="tel" placeholder="+1234567890" style="font-size:18px;padding:16px;min-width:0">
+<button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-copy-btn flex-shrink-0" title="Copy">
+<span class="material-icons-round" style="font-size:18px">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-paste-btn flex-shrink-0" title="Paste">
+<span class="material-icons-round" style="font-size:18px">content_paste</span>
+</button>
+<button type="button" class="bg-green-500 text-white px-2 py-2 rounded-lg flex items-center justify-center gap-1 phone-msg-btn flex-shrink-0" title="WhatsApp/SMS">
+<span class="material-icons-round" style="font-size:14px">chat</span>
+<span>Msg</span>
+</button>
+</div>
+</div>
+<button type="button" class="phone-add-btn mt-2" id="addPhoneBtn">
+<span class="material-icons-round" style="font-size:16px">add</span> Add Phone
+</button>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-3">Status</label>
+<div class="flex flex-wrap gap-2" id="statusTags">
+<button type="button" class="tag tag-hot" data-status="hot">🔥 Hot</button>
+<button type="button" class="tag tag-warm" data-status="warm">☀️ Warm</button>
+<button type="button" class="tag tag-cold active" data-status="cold">❄️ Cold</button>
+<button type="button" class="tag tag-customer" data-status="customer">💎 Customer</button>
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-3">Pipeline Stage</label>
+<div class="flex flex-wrap gap-2" id="stageTags">
+<button type="button" class="stage-tag stage-new" data-stage="new">🆕 NEW</button>
+<button type="button" class="stage-tag stage-inactive" data-stage="contacted">📩 CONTACTED</button>
+<button type="button" class="stage-tag stage-inactive" data-stage="replied">💬 REPLIED</button>
+<button type="button" class="stage-tag stage-inactive" data-stage="booked">📅 BOOKED</button>
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Follow-up Date</label>
+<input class="input-field" id="followupDate" type="date">
+<div class="flex gap-2 mt-3">
+<button type="button" class="quick-date" data-days="1">TOMORROW</button>
+<button type="button" class="quick-date" data-days="3">IN 3 DAYS</button>
+<button type="button" class="quick-date" data-days="7">IN 1 WEEK</button>
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Notes</label>
+<div class="flex gap-2">
+<textarea class="input-field resize-none flex-1" id="notes" placeholder="What did you talk about?" rows="3"></textarea>
+<div class="flex flex-col gap-2">
+<button type="button" class="bg-slate-100 text-slate-500 px-3 py-2 rounded-xl flex items-center justify-center copy-btn" data-target="notes" title="Copy">
+<span class="material-icons-round">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 py-2 rounded-xl flex items-center justify-center paste-btn" data-target="notes" title="Paste">
+<span class="material-icons-round">content_paste</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 py-2 rounded-xl flex items-center justify-center" id="notesVoiceBtn">
+<span class="material-icons-round">mic</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-6 backdrop-blur-xl border-t border-slate-200" id="saveBtnContainer" style="background:rgba(249,250,251,0.9);display:none">
+<button class="btn-primary flex items-center justify-center gap-2" id="saveBtn">
+<span class="material-icons-round">save</span> Save Prospect
+</button>
+</div>
+</div>
+
+<div class="tab-content px-6 pb-24" id="listContent">
+<div class="mb-6">
+<input class="input-field" id="searchInput" type="text" placeholder="🔍 Search prospects...">
+</div>
+<div class="flex gap-2 overflow-x-auto no-scrollbar pb-4" id="filterPills">
+<button class="pill pill-active" data-filter="all">All</button>
+<button class="pill pill-inactive" data-filter="hot">🔥 Hot</button>
+<button class="pill pill-inactive" data-filter="warm">☀️ Warm</button>
+<button class="pill pill-inactive" data-filter="cold">❄️ Cold</button>
+</div>
+<div class="space-y-4" id="prospectList">
+<p class="text-slate-400 text-sm text-center py-8">No prospects yet</p>
+</div>
+</div>
+
+<div class="tab-content px-6 pb-24" id="pipelineContent">
+<div class="flex items-center gap-2 mb-6">
+<span class="text-2xl">🎯</span>
+<h2 class="text-2xl font-bold">Sales Pipeline</h2>
+</div>
+<div class="space-y-4" id="pipelineCards"></div>
+<div class="mt-8 p-6 bg-slate-900 rounded-2xl text-white">
+<p class="text-slate-400 text-sm uppercase mb-2">Conversion Rate</p>
+<span class="text-4xl font-extrabold" id="conversionRate">0%</span>
+</div>
+</div>
+
+<div class="tab-content px-6 pb-24" id="activityContent">
+<div class="mb-6">
+<h2 class="text-2xl font-bold">Team Activity</h2>
+<p class="text-slate-500 text-sm">What everyone's been up to</p>
+</div>
+<div class="space-y-4" id="activityList">
+<p class="text-slate-400 text-sm text-center py-8">No activity yet</p>
+</div>
+</div>
+
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-6" id="fabContainer">
+<button class="btn-primary flex items-center justify-center gap-2" id="fabBtn">
+<span class="material-icons-round">add</span> New Prospect
+</button>
+</div>
+</div>
+
+<div class="modal" id="userModal">
+<div class="modal-box">
+<div class="modal-head">
+<span class="font-bold text-lg">Account</span>
+<button class="modal-close" id="closeUser"><span class="material-icons-round">close</span></button>
+</div>
+<div class="modal-body">
+<div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-200">
+<div class="avatar-ring"><div class="avatar-inner w-14 h-14 text-xl" id="modalAvatar">M</div></div>
+<div>
+<p class="font-bold text-lg" id="userName">User</p>
+<p class="text-sm text-slate-500" id="userEmail">user@example.com</p>
+</div>
+</div>
+<div id="subscriptionInfo" class="mb-6 p-4 rounded-xl bg-slate-100"></div>
+<div class="menu-item" id="teamBtn">
+<div class="flex items-center gap-3"><span class="material-icons-round text-slate-400">group</span><span>Team Members</span></div>
+<span class="material-icons-round text-slate-400">chevron_right</span>
+</div>
+<div class="menu-item" id="passwordBtn">
+<div class="flex items-center gap-3"><span class="material-icons-round text-slate-400">lock</span><span>Change Password</span></div>
+<span class="material-icons-round text-slate-400">chevron_right</span>
+</div>
+<div class="menu-item hidden" id="adminBtn">
+<div class="flex items-center gap-3"><span class="material-icons-round text-[#E11D48]">admin_panel_settings</span><span class="text-[#E11D48] font-semibold">Admin Panel</span></div>
+<span class="material-icons-round text-[#E11D48]">chevron_right</span>
+</div>
+<div class="menu-item" id="logoutBtn">
+<div class="flex items-center gap-3"><span class="material-icons-round text-red-500">logout</span><span class="text-red-500">Sign Out</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="teamModal">
+<div class="modal-box">
+<div class="modal-head">
+<span class="font-bold text-lg">Team Members</span>
+<button class="modal-close" id="closeTeam"><span class="material-icons-round">close</span></button>
+</div>
+<div class="modal-body">
+<div class="space-y-3 mb-6" id="teamList"></div>
+<div class="border-t border-slate-200 pt-6">
+<h4 class="font-bold mb-4">Invite New Member</h4>
+<div class="flex gap-2">
+<input class="input-field flex-1" id="inviteEmail" type="email" placeholder="Email address">
+<button class="bg-[#E11D48] text-white px-4 rounded-xl font-semibold" id="inviteBtn">Invite</button>
+</div>
+<div class="mt-4" id="pendingInvites"></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="editModal">
+<div class="modal-box">
+<div class="modal-head">
+<span class="font-bold text-lg">Edit Prospect</span>
+<button class="modal-close" id="closeEdit"><span class="material-icons-round">close</span></button>
+</div>
+<div class="modal-body">
+<input type="hidden" id="editId">
+<div class="space-y-4">
+<div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Profile Link <span class="font-normal normal-case">(optional)</span></label>
+<div class="flex gap-2">
+<input class="input-field flex-1" id="editLink" type="text" placeholder="Instagram, Facebook, LinkedIn, etc.">
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center copy-btn" data-target="editLink" title="Copy Link">
+<span class="material-icons-round">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center paste-btn" data-target="editLink" title="Paste Link">
+<span class="material-icons-round">content_paste</span>
+</button>
+<button type="button" class="bg-gradient-to-r from-violet-500 to-purple-500 text-white px-4 rounded-xl" id="editVisitBtn" title="Open Profile">
+<span class="material-icons-round">open_in_new</span>
+</button>
+</div>
+</div>
+<div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Name</label>
+<div class="flex gap-2">
+<input class="input-field flex-1" id="editName" type="text">
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center copy-btn" data-target="editName" title="Copy">
+<span class="material-icons-round">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center paste-btn" data-target="editName" title="Paste">
+<span class="material-icons-round">content_paste</span>
+</button>
+</div>
+</div>
+<!-- Edit Email Section -->
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Email Addresses</label>
+<div id="editEmailInputs">
+<div class="email-input-row">
+<input class="input-field" type="email" placeholder="email@example.com">
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-copy-btn" title="Copy Email">
+<span class="material-icons-round">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-paste-btn" title="Paste Email">
+<span class="material-icons-round">content_paste</span>
+</button>
+</div>
+</div>
+<button type="button" class="email-add-btn mt-2" id="editAddEmailBtn">
+<span class="material-icons-round" style="font-size:16px">add</span> Add Email
+</button>
+</div>
+<!-- Edit Phone Section -->
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Phone Numbers</label>
+<div id="editPhoneInputs">
+<div class="phone-input-row">
+<input class="input-field flex-1" type="tel" placeholder="+1234567890" style="font-size:18px;padding:16px;min-width:0">
+<button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-copy-btn flex-shrink-0" title="Copy">
+<span class="material-icons-round" style="font-size:18px">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-paste-btn flex-shrink-0" title="Paste">
+<span class="material-icons-round" style="font-size:18px">content_paste</span>
+</button>
+<button type="button" class="bg-green-500 text-white px-2 py-2 rounded-lg flex items-center justify-center gap-1 phone-msg-btn flex-shrink-0" title="WhatsApp/SMS">
+<span class="material-icons-round" style="font-size:14px">chat</span>
+<span>Msg</span>
+</button>
+</div>
+</div>
+<button type="button" class="phone-add-btn mt-2" id="editAddPhoneBtn">
+<span class="material-icons-round" style="font-size:16px">add</span> Add Phone
+</button>
+</div>
+<div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Status</label>
+<div class="flex flex-wrap gap-2" id="editStatusTags">
+<button type="button" class="tag tag-hot" data-status="hot">🔥 Hot</button>
+<button type="button" class="tag tag-warm" data-status="warm">☀️ Warm</button>
+<button type="button" class="tag tag-cold" data-status="cold">❄️ Cold</button>
+<button type="button" class="tag tag-customer" data-status="customer">💎 Customer</button>
+</div>
+</div>
+<div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Stage</label>
+<div class="flex flex-wrap gap-2" id="editStageTags">
+<button type="button" class="stage-tag stage-new" data-stage="new">NEW</button>
+<button type="button" class="stage-tag stage-inactive" data-stage="contacted">CONTACTED</button>
+<button type="button" class="stage-tag stage-inactive" data-stage="replied">REPLIED</button>
+<button type="button" class="stage-tag stage-inactive" data-stage="booked">BOOKED</button>
+<button type="button" class="stage-tag stage-inactive" data-stage="customer">CUSTOMER</button>
+<button type="button" class="stage-tag stage-inactive" data-stage="lost">LOST</button>
+</div>
+</div>
+<div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Follow-up</label><input class="input-field" id="editFollowup" type="date"></div>
+<div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Notes</label>
+<div class="flex gap-2">
+<textarea class="input-field resize-none flex-1" id="editNotes" rows="3"></textarea>
+<div class="flex flex-col gap-2">
+<button type="button" class="bg-slate-100 text-slate-500 px-3 py-2 rounded-xl flex items-center justify-center copy-btn" data-target="editNotes" title="Copy">
+<span class="material-icons-round">content_copy</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 py-2 rounded-xl flex items-center justify-center paste-btn" data-target="editNotes" title="Paste">
+<span class="material-icons-round">content_paste</span>
+</button>
+<button type="button" class="bg-slate-100 text-slate-500 px-3 py-2 rounded-xl flex items-center justify-center" id="editNotesVoiceBtn" title="Voice Input">
+<span class="material-icons-round">mic</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex gap-2 pt-4">
+<button type="button" class="flex-1 py-3 bg-red-100 text-red-500 rounded-xl font-semibold" id="deleteBtn">Delete</button>
+<button type="button" class="flex-1 py-3 bg-[#E11D48] text-white rounded-xl font-semibold" id="updateBtn">Update</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="passwordModal">
+<div class="modal-box">
+<div class="modal-head">
+<span class="font-bold text-lg">Change Password</span>
+<button class="modal-close" id="closePassword"><span class="material-icons-round">close</span></button>
+</div>
+<div class="modal-body">
+<div class="space-y-4">
+<input class="input-field" id="newPassword" type="password" placeholder="New password" minlength="6">
+<input class="input-field" id="confirmPassword" type="password" placeholder="Confirm password">
+<button class="btn-primary" id="updatePasswordBtn">Update Password</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="adminModal">
+<div class="modal-box">
+<div class="modal-head">
+<span class="font-bold text-lg">🛡️ Admin Panel</span>
+<button class="modal-close" id="closeAdmin"><span class="material-icons-round">close</span></button>
+</div>
+<div class="modal-body">
+<input class="input-field mb-4" id="tenantSearch" type="text" placeholder="Search tenants...">
+<div class="space-y-3" id="tenantList"></div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="stageModal">
+<div class="modal-box">
+<div class="modal-head">
+<span class="font-bold text-lg" id="stageModalTitle">Prospects</span>
+<button class="modal-close" id="closeStage"><span class="material-icons-round">close</span></button>
+</div>
+<div class="modal-body">
+<div class="space-y-3" id="stageProspectList"></div>
+</div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+console.log("Starting ProspectSnap v3.1...");
+
+var SUPABASE_URL = "https://yuqeqricenygpsrdfswx.supabase.co";
+var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1cWVxcmljZW55Z3BzcmRmc3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwOTY1MjIsImV4cCI6MjA3MjY3MjUyMn0.yK9xBR-wk5wtBVk6_ne2qqlbYN1dIpM9kVdGWPEBLG8";
+
+var db = null;
+try {
+  db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+  console.log("Database connected");
+} catch(err) {
+  console.error("DB Error:", err);
+}
+
+var $ = function(id) { return document.getElementById(id); };
+
+var S = {
+  user: null,
+  member: null,
+  team: null,
+  prospects: [],
+  activities: [],
+  filter: "all",
+  sort: "newest",
+  search: "",
+  status: "cold",
+  stage: "new",
+  editStatus: "cold",
+  editStage: "new",
+  theme: "light",
+  isPlatformAdmin: false,
+  tenants: []
+};
+
+function applyTheme() {
+  var isDark = S.theme === "dark";
+  document.documentElement.classList.toggle("dark", isDark);
+  $("themeColor").content = isDark ? "#0F172A" : "#F9FAFB";
+  var knob = document.querySelector(".theme-toggle-knob .material-icons-round");
+  if (knob) knob.textContent = isDark ? "dark_mode" : "light_mode";
+  $("mainHeader").style.background = isDark ? "rgba(15,23,42,0.8)" : "rgba(249,250,251,0.8)";
+  $("navBar").style.background = isDark ? "#1E293B" : "#F1F5F9";
+  $("saveBtnContainer").style.background = isDark ? "rgba(15,23,42,0.9)" : "rgba(249,250,251,0.9)";
+}
+
+function show(screenId) {
+  document.querySelectorAll(".screen").forEach(function(el) { el.classList.remove("active"); });
+  $(screenId).classList.add("active");
+}
+
+function switchTab(tabName) {
+  document.querySelectorAll(".nav-btn").forEach(function(b) { b.classList.remove("active"); });
+  document.querySelectorAll(".tab-content").forEach(function(c) { c.classList.remove("active"); });
+  var btn = document.querySelector("[data-tab='" + tabName + "']");
+  if (btn) btn.classList.add("active");
+  $(tabName + "Content").classList.add("active");
+  $("fabContainer").style.display = tabName === "capture" ? "none" : "block";
+  $("saveBtnContainer").style.display = tabName === "capture" ? "block" : "none";
+}
+
+function toast(msg, isErr) {
+  var t = $("toast");
+  t.textContent = msg;
+  t.className = "toast" + (isErr ? " error" : "") + " show";
+  setTimeout(function() { t.classList.remove("show"); }, 3000);
+}
+
+function timeAgo(d) {
+  var diff = Math.floor((Date.now() - new Date(d)) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+  if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+  return Math.floor(diff / 86400) + "d ago";
+}
+
+function updateGreeting() {
+  var h = new Date().getHours();
+  var g = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  $("greetingText").textContent = g + (S.member ? ", " + S.member.display_name : "") + " 👋";
+}
+
+function updateStats() {
+  var today = new Date().toISOString().split("T")[0];
+  var overdue = 0, due = 0, hot = 0;
+  S.prospects.forEach(function(p) {
+    if (p.follow_up_date && p.follow_up_date < today) overdue++;
+    if (p.follow_up_date && p.follow_up_date === today) due++;
+    if (p.status === "hot") hot++;
+  });
+  $("statOverdue").textContent = overdue;
+  $("statToday").textContent = due;
+  $("statHot").textContent = hot;
+  $("statTotal").textContent = S.prospects.length;
+  $("listBadge").textContent = S.prospects.length;
+  var att = overdue + due;
+  $("alertTitle").textContent = att + " prospect" + (att !== 1 ? "s" : "") + " need attention";
+  $("alertSubtitle").textContent = overdue + " overdue, " + due + " due today";
+  if (att === 0) {
+    $("alertTitle").textContent = "All caught up!";
+    $("alertSubtitle").textContent = "No follow-ups needed";
+  }
+}
+
+function renderPipeline() {
+  var stages = [
+    {id:"new",name:"New Leads",emoji:"🆕",color:"#F59E0B"},
+    {id:"contacted",name:"Contacted",emoji:"📩",color:"#3B82F6"},
+    {id:"replied",name:"Replied",emoji:"💬",color:"#6366F1"},
+    {id:"booked",name:"Booked",emoji:"📅",color:"#8B5CF6"},
+    {id:"customer",name:"Customer",emoji:"💎",color:"#10B981"},
+    {id:"lost",name:"Lost",emoji:"❌",color:"#F43F5E"}
+  ];
+  var counts = {};
+  stages.forEach(function(s) { counts[s.id] = 0; });
+  S.prospects.forEach(function(p) {
+    var st = p.pipeline_stage || "new";
+    if (counts[st] !== undefined) counts[st]++;
+  });
+  var total = S.prospects.length || 1;
+  var html = "";
+  stages.forEach(function(s) {
+    var pct = Math.round((counts[s.id] / total) * 100);
+    html += "<div class='pipeline-card' onclick='showStage(\"" + s.id + "\",\"" + s.name + "\")'>";
+    html += "<div class='flex justify-between items-center mb-3'>";
+    html += "<div class='flex items-center gap-3'><span class='text-xl'>" + s.emoji + "</span><span class='font-bold'>" + s.name + "</span></div>";
+    html += "<span class='text-2xl font-extrabold'>" + counts[s.id] + "</span></div>";
+    html += "<div class='progress-bar'><div class='progress-fill' style='width:" + pct + "%;background:" + s.color + "'></div></div></div>";
+  });
+  $("pipelineCards").innerHTML = html;
+  var cust = counts["customer"] || 0;
+  $("conversionRate").textContent = (total > 0 ? Math.round((cust / total) * 100) : 0) + "%";
+}
+
+window.showStage = function(stageId, title) {
+  $("stageModalTitle").textContent = title;
+  var list = S.prospects.filter(function(p) { return (p.pipeline_stage || "new") === stageId; });
+  var html = "";
+  if (list.length === 0) {
+    html = "<p class='text-slate-400 text-center py-4'>No prospects</p>";
+  } else {
+    list.forEach(function(p) {
+      html += "<div class='prospect-card' onclick='editProspect(\"" + p.id + "\")'>";
+      html += "<p class='font-bold'>" + (p.name || "Unknown") + "</p>";
+      html += "<p class='text-sm text-slate-500'>" + (p.profile_link || "") + "</p></div>";
+    });
+  }
+  $("stageProspectList").innerHTML = html;
+  $("stageModal").classList.add("show");
+};
+
+window.copyEmail = function(email, event) {
+  event.stopPropagation();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(email).then(function() {
+      toast("Email copied!");
+    }).catch(function() {
+      fallbackCopy(email);
+    });
+  } else {
+    fallbackCopy(email);
+  }
+};
+
+function fallbackCopy(text) {
+  var textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    document.execCommand("copy");
+    toast("Copied!");
+  } catch(e) {
+    toast("Copy failed", true);
+  }
+  document.body.removeChild(textarea);
+}
+
+function renderEmailChips(emails) {
+  if (!emails || emails.length === 0) return "";
+  var html = "<div class='emails-container flex flex-wrap gap-1 mt-2'>";
+  emails.forEach(function(email) {
+    if (email && email.trim()) {
+      html += "<span class='email-chip'>";
+      html += "<span class='truncate' style='max-width:140px'>" + email + "</span>";
+      html += "<button class='copy-btn' onclick='copyEmail(\"" + email + "\", event)' title='Copy email'>";
+      html += "<span class='material-icons-round'>content_copy</span>";
+      html += "</button></span>";
+    }
+  });
+  html += "</div>";
+  return html;
+}
+
+function renderList() {
+  var filtered = S.prospects.filter(function(p) {
+    if (S.filter !== "all" && p.status !== S.filter) return false;
+    if (S.search) {
+      var q = S.search.toLowerCase();
+      if ((p.name || "").toLowerCase().indexOf(q) === -1 && (p.profile_link || "").toLowerCase().indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  var today = new Date().toISOString().split("T")[0];
+  var html = "";
+  if (filtered.length === 0) {
+    html = "<p class='text-slate-400 text-sm text-center py-8'>No prospects found</p>";
+  } else {
+    filtered.forEach(function(p) {
+      var init = (p.name || "?")[0].toUpperCase();
+      var emails = p.emails || [];
+      var phones = p.phones || [];
+      html += "<div class='prospect-card' onclick='editProspect(\"" + p.id + "\")'>";
+      html += "<div class='flex gap-4'>";
+      html += "<div class='w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg flex-shrink-0'>" + init + "</div>";
+      html += "<div class='flex-1 min-w-0'>";
+      html += "<h3 class='font-bold'>" + (p.name || "Unknown") + "</h3>";
+      html += "<p class='text-sm text-slate-400 truncate'>" + (p.profile_link || "No link") + "</p>";
+      if (emails.length > 0) { html += renderEmailChips(emails); }
+      if (phones.length > 0) { html += renderPhoneChips(phones); }
+      html += "<div class='flex gap-2 mt-2'>";
+      html += "<span class='badge badge-" + (p.status || "cold") + "'>" + (p.status || "cold").toUpperCase() + "</span>";
+      if (p.follow_up_date && p.follow_up_date < today) html += "<span class='badge badge-overdue'>OVERDUE</span>";
+      if (p.follow_up_date && p.follow_up_date === today) html += "<span class='badge badge-today'>TODAY</span>";
+      html += "</div></div>";
+      html += "<span class='material-icons-round text-slate-300 flex-shrink-0'>chevron_right</span>";
+      html += "</div></div>";
+    });
+  }
+  $("prospectList").innerHTML = html;
+}
+
+window.filterByOverdue = function() {
+  var today = new Date().toISOString().split("T")[0];
+  showFilteredProspects("Overdue Prospects", S.prospects.filter(function(p) { return p.follow_up_date && p.follow_up_date < today; }));
+};
+window.filterByDueToday = function() {
+  var today = new Date().toISOString().split("T")[0];
+  showFilteredProspects("Due Today", S.prospects.filter(function(p) { return p.follow_up_date && p.follow_up_date === today; }));
+};
+window.filterByHot = function() {
+  showFilteredProspects("Hot Leads", S.prospects.filter(function(p) { return p.status === "hot"; }));
+};
+window.filterByAll = function() {
+  switchTab("list");
+  S.filter = "all";
+  document.querySelectorAll("#filterPills .pill").forEach(function(p) { p.classList.remove("pill-active"); p.classList.add("pill-inactive"); });
+  document.querySelector("#filterPills .pill[data-filter='all']").classList.add("pill-active");
+  document.querySelector("#filterPills .pill[data-filter='all']").classList.remove("pill-inactive");
+  renderList();
+};
+
+function showFilteredProspects(title, list) {
+  $("stageModalTitle").textContent = title;
+  var html = "";
+  if (list.length === 0) {
+    html = "<p class='text-slate-400 text-center py-4'>No prospects</p>";
+  } else {
+    list.forEach(function(p) {
+      var init = (p.name || "?")[0].toUpperCase();
+      html += "<div class='prospect-card' onclick='editProspect(\"" + p.id + "\")'>";
+      html += "<div class='flex items-center gap-3'>";
+      html += "<div class='w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-[#E11D48]'>" + init + "</div>";
+      html += "<div class='flex-1'><p class='font-bold'>" + (p.name || "Unknown") + "</p>";
+      html += "<p class='text-xs text-slate-500'>" + (p.follow_up_date || "No date") + "</p>";
+      if ((p.emails || []).length > 0) { html += renderEmailChips(p.emails); }
+      html += "</div></div></div>";
+    });
+  }
+  $("stageProspectList").innerHTML = html;
+  $("stageModal").classList.add("show");
+}
+
+function renderActivity() {
+  var html = "";
+  if (S.activities.length === 0) {
+    html = "<p class='text-slate-400 text-sm text-center py-8'>No activity yet</p>";
+  } else {
+    S.activities.forEach(function(a) {
+      var init = (a.user_name || "?")[0].toUpperCase();
+      var desc = a.action_detail || a.action_details || a.description || "made a change";
+      html += "<div class='activity-card flex gap-4'>";
+      html += "<div class='w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold'>" + init + "</div>";
+      html += "<div class='flex-1'><p class='text-sm'><b>" + (a.user_name || "Someone") + "</b> <span class='text-slate-500'>" + desc + "</span></p>";
+      html += "<p class='text-xs text-slate-400'>" + timeAgo(a.created_at) + "</p></div></div>";
+    });
+  }
+  $("activityList").innerHTML = html;
+  $("recentActivity").innerHTML = html || "<p class='text-slate-400 text-center py-4'>No activity</p>";
+}
+
+function loadData() {
+  if (!S.team) return Promise.resolve();
+  return Promise.all([
+    db.from("prospect_snap_prospects").select("*").eq("team_id", S.team.id).order("created_at", {ascending: false}),
+    db.from("prospect_snap_activity").select("*").eq("team_id", S.team.id).order("created_at", {ascending: false}).limit(20)
+  ]).then(function(r) {
+    S.prospects = r[0].data || [];
+    S.activities = r[1].data || [];
+    updateStats(); renderList(); renderPipeline(); renderActivity(); updateGreeting();
+  });
+}
+
+function getEmailsFromForm() {
+  var emails = [];
+  document.querySelectorAll("#emailInputs input[type='email']").forEach(function(input) { var v = input.value.trim(); if (v) emails.push(v); });
+  return emails;
+}
+function getEditEmailsFromForm() {
+  var emails = [];
+  document.querySelectorAll("#editEmailInputs input[type='email']").forEach(function(input) { var v = input.value.trim(); if (v) emails.push(v); });
+  return emails;
+}
+function clearEmailForm() {
+  $("emailInputs").innerHTML = '<div class="email-input-row"><input class="input-field" type="email" placeholder="email@example.com"><button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-copy-btn" title="Copy Email"><span class="material-icons-round">content_copy</span></button><button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-paste-btn" title="Paste Email"><span class="material-icons-round">content_paste</span></button></div>';
+}
+function addEmailRow(container) {
+  var row = document.createElement("div");
+  row.className = "email-input-row";
+  row.innerHTML = '<input class="input-field" type="email" placeholder="email@example.com"><button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-copy-btn" title="Copy Email"><span class="material-icons-round">content_copy</span></button><button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-paste-btn" title="Paste Email"><span class="material-icons-round">content_paste</span></button><button type="button" class="email-remove-btn" onclick="this.parentElement.remove()"><span class="material-icons-round">close</span></button>';
+  container.appendChild(row);
+}
+function getPhonesFromForm() {
+  var phones = [];
+  document.querySelectorAll("#phoneInputs input[type='tel']").forEach(function(input) { var v = input.value.trim(); if (v) phones.push(v); });
+  return phones;
+}
+function getEditPhonesFromForm() {
+  var phones = [];
+  document.querySelectorAll("#editPhoneInputs input[type='tel']").forEach(function(input) { var v = input.value.trim(); if (v) phones.push(v); });
+  return phones;
+}
+function clearPhoneForm() {
+  $("phoneInputs").innerHTML = '<div class="phone-input-row"><input class="input-field flex-1" type="tel" placeholder="+1234567890" style="font-size:18px;padding:16px;min-width:0"><button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-copy-btn flex-shrink-0" title="Copy"><span class="material-icons-round" style="font-size:18px">content_copy</span></button><button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-paste-btn flex-shrink-0" title="Paste"><span class="material-icons-round" style="font-size:18px">content_paste</span></button><button type="button" class="bg-green-500 text-white px-2 py-2 rounded-lg flex items-center justify-center gap-1 phone-msg-btn flex-shrink-0" title="WhatsApp/SMS"><span class="material-icons-round" style="font-size:14px">chat</span><span>Msg</span></button></div>';
+}
+function addPhoneRow(container) {
+  var row = document.createElement("div");
+  row.className = "phone-input-row";
+  row.innerHTML = '<input class="input-field flex-1" type="tel" placeholder="+1234567890" style="font-size:18px;padding:16px;min-width:0"><button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-copy-btn flex-shrink-0" title="Copy"><span class="material-icons-round" style="font-size:18px">content_copy</span></button><button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-paste-btn flex-shrink-0" title="Paste"><span class="material-icons-round" style="font-size:18px">content_paste</span></button><button type="button" class="bg-green-500 text-white px-2 py-2 rounded-lg flex items-center justify-center gap-1 phone-msg-btn flex-shrink-0" title="WhatsApp/SMS"><span class="material-icons-round" style="font-size:14px">chat</span><span>Msg</span></button><button type="button" class="phone-remove-btn flex-shrink-0" onclick="this.parentElement.remove()"><span class="material-icons-round">close</span></button>';
+  container.appendChild(row);
+}
+function setEditPhones(phones) {
+  var container = $("editPhoneInputs");
+  container.innerHTML = "";
+  if (!phones || phones.length === 0) {
+    container.innerHTML = '<div class="phone-input-row"><input class="input-field flex-1" type="tel" placeholder="+1234567890" style="font-size:18px;padding:16px;min-width:0"><button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-copy-btn flex-shrink-0" title="Copy"><span class="material-icons-round" style="font-size:18px">content_copy</span></button><button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-paste-btn flex-shrink-0" title="Paste"><span class="material-icons-round" style="font-size:18px">content_paste</span></button><button type="button" class="bg-green-500 text-white px-2 py-2 rounded-lg flex items-center justify-center gap-1 phone-msg-btn flex-shrink-0" title="WhatsApp/SMS"><span class="material-icons-round" style="font-size:14px">chat</span><span>Msg</span></button></div>';
+    return;
+  }
+  phones.forEach(function(phone, index) {
+    var row = document.createElement("div");
+    row.className = "phone-input-row";
+    var baseHtml = '<input class="input-field flex-1" type="tel" placeholder="+1234567890" value="' + (phone || '') + '" style="font-size:18px;padding:16px;min-width:0"><button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-copy-btn flex-shrink-0" title="Copy"><span class="material-icons-round" style="font-size:18px">content_copy</span></button><button type="button" class="bg-slate-100 text-slate-500 px-2 rounded-lg flex items-center justify-center phone-paste-btn flex-shrink-0" title="Paste"><span class="material-icons-round" style="font-size:18px">content_paste</span></button><button type="button" class="bg-green-500 text-white px-2 py-2 rounded-lg flex items-center justify-center gap-1 phone-msg-btn flex-shrink-0" title="WhatsApp/SMS"><span class="material-icons-round" style="font-size:14px">chat</span><span>Msg</span></button>';
+    row.innerHTML = index === 0 ? baseHtml : baseHtml + '<button type="button" class="phone-remove-btn flex-shrink-0" onclick="this.parentElement.remove()"><span class="material-icons-round">close</span></button>';
+    container.appendChild(row);
+  });
+}
+function renderPhoneChips(phones) {
+  if (!phones || phones.length === 0) return "";
+  var html = '<div class="flex flex-wrap gap-1 mt-1">';
+  phones.forEach(function(phone) {
+    if (phone && phone.trim()) {
+      html += '<span class="inline-flex items-center gap-1 bg-green-50 border border-green-200 text-green-700 px-2 py-1 rounded-lg text-xs font-medium">';
+      html += '<span class="material-icons-round" style="font-size:12px">phone</span>';
+      html += '<span class="truncate" style="max-width:100px">' + phone + '</span>';
+      html += '<button onclick="copyPhoneChip(\'' + phone + '\', event)" class="hover:bg-green-200 rounded p-0.5" title="Copy"><span class="material-icons-round" style="font-size:12px">content_copy</span></button>';
+      html += '<button onclick="showPhoneActions(\'' + phone + '\', event)" class="hover:bg-green-200 rounded p-0.5" title="Contact"><span class="material-icons-round" style="font-size:12px">more_vert</span></button>';
+      html += '</span>';
+    }
+  });
+  html += '</div>';
+  return html;
+}
+window.copyPhoneChip = function(phone, event) {
+  event.stopPropagation();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(phone).then(function() { toast("Phone copied!"); }).catch(function() { fallbackCopy(phone); });
+  } else { fallbackCopy(phone); }
+};
+window.showPhoneActions = function(phone, event) {
+  event.stopPropagation();
+  var existing = document.querySelector('.floating-phone-menu');
+  if (existing) existing.remove();
+  var menu = document.createElement('div');
+  menu.className = 'floating-phone-menu';
+  menu.style.cssText = 'position:fixed;z-index:9999;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);overflow:hidden;min-width:150px';
+  menu.innerHTML = '<button class="phone-menu-item whatsapp" style="display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;font-size:15px;font-weight:600;border:none;background:none;width:100%;text-align:left;color:#25D366"><span class="material-icons-round">chat</span> WhatsApp</button><button class="phone-menu-item sms" style="display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;font-size:15px;font-weight:600;border:none;background:none;width:100%;text-align:left;color:#3B82F6"><span class="material-icons-round">sms</span> SMS</button>';
+  var rect = event.target.getBoundingClientRect();
+  menu.style.top = (rect.bottom + 5) + 'px';
+  menu.style.left = (rect.left - 100) + 'px';
+  document.body.appendChild(menu);
+  var cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+  menu.querySelector('.whatsapp').onclick = function(e) { e.stopPropagation(); window.open('https://wa.me/' + cleanPhone.replace(/^\+/, ''), '_blank'); menu.remove(); };
+  menu.querySelector('.sms').onclick = function(e) { e.stopPropagation(); window.location.href = 'sms:' + cleanPhone; menu.remove(); };
+  setTimeout(function() { document.addEventListener('click', function closeMenu(e) { if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click', closeMenu); } }); }, 10);
+};
+function setEditEmails(emails) {
+  var container = $("editEmailInputs");
+  container.innerHTML = "";
+  if (!emails || emails.length === 0) {
+    container.innerHTML = '<div class="email-input-row"><input class="input-field" type="email" placeholder="email@example.com"><button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-copy-btn" title="Copy Email"><span class="material-icons-round">content_copy</span></button><button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-paste-btn" title="Paste Email"><span class="material-icons-round">content_paste</span></button></div>';
+    return;
+  }
+  emails.forEach(function(email, index) {
+    var row = document.createElement("div");
+    row.className = "email-input-row";
+    var baseHtml = '<input class="input-field" type="email" placeholder="email@example.com" value="' + (email || '') + '"><button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-copy-btn" title="Copy Email"><span class="material-icons-round">content_copy</span></button><button type="button" class="bg-slate-100 text-slate-500 px-3 rounded-xl flex items-center justify-center email-paste-btn" title="Paste Email"><span class="material-icons-round">content_paste</span></button>';
+    row.innerHTML = index === 0 ? baseHtml : baseHtml + '<button type="button" class="email-remove-btn" onclick="this.parentElement.remove()"><span class="material-icons-round">close</span></button>';
+    container.appendChild(row);
+  });
+}
+
+function saveProspect() {
+  var link = $("profileLink").value.trim();
+  var name = $("prospectName").value.trim();
+  var notes = $("notes").value.trim();
+  var followup = $("followupDate").value;
+  var emails = getEmailsFromForm();
+  var phones = getPhonesFromForm();
+  if (!link && emails.length === 0 && phones.length === 0) { toast("Enter at least one contact (profile, email, or phone)", true); return; }
+  $("saveBtn").disabled = true;
+  db.from("prospect_snap_prospects").insert({
+    team_id: S.team.id, profile_link: link || null, name: name, status: S.status, pipeline_stage: S.stage,
+    notes: notes, follow_up_date: followup || null, emails: emails, phones: phones,
+    saved_by: S.user.id, saved_by_name: S.member ? S.member.display_name : "Unknown"
+  }).select().single().then(function(r) {
+    if (r.error) throw r.error;
+    S.prospects.unshift(r.data);
+    return db.from("prospect_snap_activity").insert({
+      team_id: S.team.id, user_id: S.user.id, user_name: S.member ? S.member.display_name : "Unknown",
+      action_type: "prospect_added", action_detail: "added " + (name || "a prospect")
+    }).select().single();
+  }).then(function(activityResult) {
+    if (activityResult.data) { S.activities.unshift(activityResult.data); if (S.activities.length > 50) S.activities.pop(); renderActivity(); }
+    toast("Saved!");
+    $("profileLink").value = ""; $("prospectName").value = ""; $("notes").value = ""; $("followupDate").value = "";
+    clearEmailForm(); clearPhoneForm(); updateStats(); renderList(); renderPipeline(); switchTab("list");
+  }).catch(function(e) { toast(e.message || "Error", true); }).finally(function() { $("saveBtn").disabled = false; });
+}
+
+window.editProspect = function(id) {
+  var p = S.prospects.find(function(x) { return x.id === id; });
+  if (!p) return;
+  $("editId").value = p.id; $("editLink").value = p.profile_link || ""; $("editName").value = p.name || "";
+  $("editNotes").value = p.notes || ""; $("editFollowup").value = p.follow_up_date || "";
+  S.editStatus = p.status || "cold"; S.editStage = p.pipeline_stage || "new";
+  setEditEmails(p.emails || []); setEditPhones(p.phones || []); renderEditTags();
+  $("editModal").classList.add("show"); $("stageModal").classList.remove("show");
+};
+
+function renderEditTags() {
+  document.querySelectorAll("#editStatusTags .tag").forEach(function(t) { t.classList.toggle("active", t.dataset.status === S.editStatus); });
+  document.querySelectorAll("#editStageTags .stage-tag").forEach(function(t) {
+    var active = t.dataset.stage === S.editStage;
+    t.classList.toggle("stage-new", active); t.classList.toggle("stage-inactive", !active);
+  });
+}
+
+function updateProspect() {
+  var id = $("editId").value;
+  $("updateBtn").disabled = true;
+  db.from("prospect_snap_prospects").update({
+    profile_link: $("editLink").value.trim(), name: $("editName").value.trim(), status: S.editStatus,
+    pipeline_stage: S.editStage, notes: $("editNotes").value.trim(), follow_up_date: $("editFollowup").value || null,
+    emails: getEditEmailsFromForm(), phones: getEditPhonesFromForm()
+  }).eq("id", id).select().single().then(function(r) {
+    if (r.error) throw r.error;
+    var idx = S.prospects.findIndex(function(x) { return x.id === id; });
+    if (idx !== -1) S.prospects[idx] = r.data;
+    return db.from("prospect_snap_activity").insert({
+      team_id: S.team.id, user_id: S.user.id, user_name: S.member ? S.member.display_name : "Unknown",
+      action_type: "prospect_updated", action_detail: "updated " + ($("editName").value.trim() || "a prospect")
+    }).select().single();
+  }).then(function(activityResult) {
+    if (activityResult.data) { S.activities.unshift(activityResult.data); if (S.activities.length > 50) S.activities.pop(); renderActivity(); }
+    toast("Updated!"); $("editModal").classList.remove("show"); updateStats(); renderList(); renderPipeline();
+  }).catch(function(e) { toast(e.message || "Error", true); }).finally(function() { $("updateBtn").disabled = false; });
+}
+
+function deleteProspect() {
+  var id = $("editId").value; var name = $("editName").value.trim();
+  if (!confirm("Delete?")) return;
+  db.from("prospect_snap_prospects").delete().eq("id", id).then(function() {
+    S.prospects = S.prospects.filter(function(x) { return x.id !== id; });
+    return db.from("prospect_snap_activity").insert({
+      team_id: S.team.id, user_id: S.user.id, user_name: S.member ? S.member.display_name : "Unknown",
+      action_type: "prospect_deleted", action_detail: "deleted " + (name || "a prospect")
+    }).select().single();
+  }).then(function(activityResult) {
+    if (activityResult && activityResult.data) { S.activities.unshift(activityResult.data); if (S.activities.length > 50) S.activities.pop(); renderActivity(); }
+    toast("Deleted"); $("editModal").classList.remove("show"); updateStats(); renderList(); renderPipeline();
+  });
+}
+
+function renderStatusTags() { document.querySelectorAll("#statusTags .tag").forEach(function(t) { t.classList.toggle("active", t.dataset.status === S.status); }); }
+function renderStageTags() {
+  document.querySelectorAll("#stageTags .stage-tag").forEach(function(t) {
+    var active = t.dataset.stage === S.stage;
+    t.classList.toggle("stage-new", active); t.classList.toggle("stage-inactive", !active);
+  });
+}
+
+function loadTeam() {
+  if (!S.team) return;
+  db.from("prospect_snap_team_members").select("*").eq("team_id", S.team.id).then(function(r) {
+    var html = "";
+    (r.data || []).forEach(function(m) {
+      html += "<div class='flex items-center justify-between p-3 bg-slate-100 rounded-xl mb-2'>";
+      html += "<span class='font-semibold'>" + (m.display_name || "Unknown") + "</span>";
+      html += "<span class='text-xs text-slate-500'>" + m.role + "</span></div>";
+    });
+    $("teamList").innerHTML = html || "<p class='text-slate-400'>No members</p>";
+  });
+}
+
+function invite() {
+  var email = $("inviteEmail").value.trim().toLowerCase();
+  if (!email) return;
+  $("inviteBtn").disabled = true;
+  db.from("prospect_snap_invites").insert({ team_id: S.team.id, email: email, invited_by: S.user.id, role: "member" }).then(function(r) {
+    if (r.error) throw r.error; toast("Invited!"); $("inviteEmail").value = ""; loadTeam();
+  }).catch(function(e) { toast(e.message || "Error", true); }).finally(function() { $("inviteBtn").disabled = false; });
+}
+
+function renderSub() {
+  if (!S.team) return;
+  $("subscriptionInfo").innerHTML = "<b>" + S.team.name + "</b><br><span class='text-sm text-slate-500'>Status: " + (S.team.subscription_status || "trial") + "</span>";
+}
+
+function loadTenants() {
+  db.from("prospect_snap_teams").select("*").then(function(r) {
+    S.tenants = r.data || [];
+    var html = "";
+    S.tenants.forEach(function(t) { html += "<div class='menu-item'><span>" + t.name + "</span><span class='text-xs text-slate-500'>" + (t.subscription_status || "trial") + "</span></div>"; });
+    $("tenantList").innerHTML = html || "<p class='text-slate-400'>No tenants</p>";
+  });
+}
+
+function loadUser() {
+  return db.from("prospect_snap_team_members").select("*,prospect_snap_teams(*)").eq("user_id", S.user.id).single().then(function(r) {
+    if (r.data) {
+      S.member = r.data; S.team = r.data.prospect_snap_teams;
+      var init = (r.data.display_name || "?")[0].toUpperCase();
+      $("avatarInitial").textContent = init; $("modalAvatar").textContent = init;
+      $("userName").textContent = r.data.display_name || "User"; $("userEmail").textContent = S.user.email; renderSub();
+    }
+    return db.from("prospect_snap_platform_admins").select("*").eq("user_id", S.user.id).single();
+  }).then(function(r) { S.isPlatformAdmin = !!r.data; $("adminBtn").classList.toggle("hidden", !S.isPlatformAdmin); });
+}
+
+function checkInvite() {
+  var email = S.user.email.toLowerCase();
+  return db.from("prospect_snap_invites").select("*").eq("email", email).single().then(function(r) {
+    if (r.data) {
+      var inv = r.data;
+      return db.from("prospect_snap_team_members").insert({
+        team_id: inv.team_id, user_id: S.user.id, role: inv.role || "member",
+        display_name: S.user.user_metadata.name || email.split("@")[0]
+      }).then(function() { return db.from("prospect_snap_invites").delete().eq("id", inv.id); });
+    }
+  }).catch(function() {});
+}
+
+function init() {
+  console.log("Init starting...");
+  S.theme = localStorage.getItem("ps_theme") || "light"; applyTheme();
+  setTimeout(function() { if ($("loadingScreen").classList.contains("active")) { show("authScreen"); } }, 4000);
+  if (!db) { show("authScreen"); return; }
+  db.auth.getSession().then(function(r) {
+    if (r.data.session) {
+      S.user = r.data.session.user;
+      return checkInvite().then(loadUser).then(function() {
+        if (S.team) { show("mainScreen"); return loadData(); }
+        else { show("authScreen"); $("authErrorText").textContent = "No team. Ask for invite or sign up."; $("authError").classList.remove("hidden"); }
+      });
+    } else { show("authScreen"); }
+  }).catch(function(e) { console.error("Init error:", e); show("authScreen"); });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  $("themeToggle").onclick = function() { S.theme = S.theme === "dark" ? "light" : "dark"; localStorage.setItem("ps_theme", S.theme); applyTheme(); };
+  document.querySelectorAll(".nav-btn").forEach(function(b) { b.onclick = function() { switchTab(b.dataset.tab); }; });
+  $("fabBtn").onclick = function() { switchTab("capture"); };
+  $("viewAllActivity").onclick = function() { switchTab("activity"); };
+  $("loginForm").onsubmit = function(e) {
+    e.preventDefault(); $("loginBtn").disabled = true;
+    db.auth.signInWithPassword({ email: $("loginEmail").value.trim(), password: $("loginPassword").value }).then(function(r) {
+      if (r.error) throw r.error; S.user = r.data.user;
+      return checkInvite().then(loadUser).then(function() {
+        if (S.team) { show("mainScreen"); loadData(); } else { $("authErrorText").textContent = "No team found"; $("authError").classList.remove("hidden"); }
+      });
+    }).catch(function(e) { $("authErrorText").textContent = e.message || "Login failed"; $("authError").classList.remove("hidden"); }).finally(function() { $("loginBtn").disabled = false; });
+  };
+  $("signupForm").onsubmit = function(e) {
+    e.preventDefault(); $("signupBtn").disabled = true;
+    var name = $("signupName").value.trim(); var email = $("signupEmail").value.trim(); var teamName = $("teamName").value.trim() || name + "'s Team";
+    db.auth.signUp({ email: email, password: $("signupPassword").value, options: { data: { name: name } } }).then(function(r) {
+      if (r.error) throw r.error; S.user = r.data.user;
+      var trial = new Date(); trial.setDate(trial.getDate() + 14);
+      return db.from("prospect_snap_teams").insert({ name: teamName, subscription_status: "trial", trial_ends_at: trial.toISOString() }).select().single().then(function(t) {
+        if (t.data) return db.from("prospect_snap_team_members").insert({ team_id: t.data.id, user_id: S.user.id, role: "owner", display_name: name });
+      });
+    }).then(loadUser).then(function() { if (S.team) { show("mainScreen"); loadData(); } }).catch(function(e) { $("authErrorText").textContent = e.message || "Signup failed"; $("authError").classList.remove("hidden"); }).finally(function() { $("signupBtn").disabled = false; });
+  };
+  $("switchAuth").onclick = function() {
+    var login = !$("loginForm").classList.contains("hidden");
+    $("loginForm").classList.toggle("hidden", login); $("signupForm").classList.toggle("hidden", !login);
+    $("authSwitchText").textContent = login ? "Have an account?" : "Don't have an account?";
+    $("switchAuth").textContent = login ? "Sign In" : "Sign Up"; $("authError").classList.add("hidden");
+  };
+  $("statusTags").onclick = function(e) { var t = e.target.closest(".tag"); if (t) { S.status = t.dataset.status; renderStatusTags(); } };
+  $("stageTags").onclick = function(e) { var t = e.target.closest(".stage-tag"); if (t) { S.stage = t.dataset.stage; renderStageTags(); } };
+  document.querySelectorAll(".quick-date").forEach(function(b) {
+    b.onclick = function() { var d = new Date(); d.setDate(d.getDate() + parseInt(b.dataset.days)); $("followupDate").value = d.toISOString().split("T")[0]; };
+  });
+  $("visitBtn").onclick = function() { var l = $("profileLink").value.trim(); if (l) window.open(l.indexOf("http") === 0 ? l : "https://" + l, "_blank"); };
+  $("smartPasteBtn").onclick = function() {
+    if (!navigator.clipboard || !navigator.clipboard.readText) { toast("Clipboard not supported", true); return; }
+    navigator.clipboard.readText().then(function(text) {
+      text = text.trim(); if (!text) { toast("Clipboard is empty", true); return; }
+      var name = "", email = "";
+      var match1 = text.match(/^([^<]+)<([^>]+)>$/);
+      if (match1) { name = match1[1].trim(); email = match1[2].trim(); }
+      if (!email) { var match2 = text.match(/^([^(]+)\(([^)]+)\)$/); if (match2) { name = match2[1].trim(); email = match2[2].trim(); } }
+      if (!email) { var emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/); if (emailMatch) { email = emailMatch[0]; var before = text.split(emailMatch[0])[0].trim(); if (before) name = before.replace(/[<(:\-,;]+$/, '').trim(); } }
+      if (!email && !name) { if (text.indexOf('@') === -1) name = text; else email = text; }
+      var filled = [];
+      if (name) { $("prospectName").value = name; filled.push("name"); }
+      if (email) { var emailInput = document.querySelector("#emailInputs input[type='email']"); if (emailInput) { emailInput.value = email; filled.push("email"); } }
+      if (filled.length > 0) toast("Filled: " + filled.join(" & ")); else toast("Could not parse contact", true);
+    }).catch(function() { toast("Paste failed - try manual paste", true); });
+  };
+  document.addEventListener("click", function(e) {
+    var copyBtn = e.target.closest(".copy-btn");
+    if (copyBtn && copyBtn.dataset.target) {
+      var input = $(copyBtn.dataset.target); if (input) { var text = input.value.trim(); if (!text) { toast("Nothing to copy", true); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function() { toast("Copied!"); }).catch(function() { fallbackCopy(text); }); } else { fallbackCopy(text); } } return;
+    }
+    var pasteBtn = e.target.closest(".paste-btn");
+    if (pasteBtn && pasteBtn.dataset.target) {
+      var input = $(pasteBtn.dataset.target);
+      if (input && navigator.clipboard && navigator.clipboard.readText) { navigator.clipboard.readText().then(function(text) { input.value = text.trim(); toast("Pasted!"); }).catch(function() { toast("Paste failed", true); }); } return;
+    }
+    var emailCopyBtn = e.target.closest(".email-copy-btn");
+    if (emailCopyBtn) { var row = emailCopyBtn.closest(".email-input-row"); var input = row ? row.querySelector("input[type='email']") : null;
+      if (input) { var email = input.value.trim(); if (!email) { toast("Nothing to copy", true); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(email).then(function() { toast("Email copied!"); }).catch(function() { fallbackCopy(email); }); } else { fallbackCopy(email); } } return;
+    }
+    var emailPasteBtn = e.target.closest(".email-paste-btn");
+    if (emailPasteBtn) { var row = emailPasteBtn.closest(".email-input-row"); var input = row ? row.querySelector("input[type='email']") : null;
+      if (input && navigator.clipboard && navigator.clipboard.readText) { navigator.clipboard.readText().then(function(text) { input.value = text.trim(); toast("Pasted!"); }).catch(function() { toast("Paste failed", true); }); } return;
+    }
+    var phoneCopyBtn = e.target.closest(".phone-copy-btn");
+    if (phoneCopyBtn) { var row = phoneCopyBtn.closest(".phone-input-row"); var input = row ? row.querySelector("input[type='tel']") : null;
+      if (input) { var phone = input.value.trim(); if (!phone) { toast("Nothing to copy", true); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(phone).then(function() { toast("Phone copied!"); }).catch(function() { fallbackCopy(phone); }); } else { fallbackCopy(phone); } } return;
+    }
+    var phonePasteBtn = e.target.closest(".phone-paste-btn");
+    if (phonePasteBtn) { var row = phonePasteBtn.closest(".phone-input-row"); var input = row ? row.querySelector("input[type='tel']") : null;
+      if (input && navigator.clipboard && navigator.clipboard.readText) { navigator.clipboard.readText().then(function(text) { input.value = text.trim(); toast("Pasted!"); }).catch(function() { toast("Paste failed", true); }); } return;
+    }
+  });
+  $("addEmailBtn").onclick = function() { addEmailRow($("emailInputs")); };
+  $("editAddEmailBtn").onclick = function() { addEmailRow($("editEmailInputs")); };
+  $("addPhoneBtn").onclick = function() { addPhoneRow($("phoneInputs")); };
+  $("editAddPhoneBtn").onclick = function() { addPhoneRow($("editPhoneInputs")); };
+  document.addEventListener("click", function(e) {
+    var actionBtn = e.target.closest(".phone-msg-btn");
+    if (actionBtn && !e.target.closest(".floating-phone-menu")) {
+      e.stopPropagation();
+      var row = actionBtn.closest(".phone-input-row"); var input = row ? row.querySelector("input[type='tel']") : null;
+      var phone = input ? input.value.trim() : "";
+      if (!phone) { toast("Enter a phone number first", true); return; }
+      var existing = document.querySelector('.floating-phone-menu'); if (existing) existing.remove();
+      var menu = document.createElement('div'); menu.className = 'floating-phone-menu';
+      menu.style.cssText = 'position:fixed;z-index:9999;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);overflow:hidden;min-width:150px';
+      if (document.documentElement.classList.contains('dark')) menu.style.background = '#1E293B';
+      menu.innerHTML = '<button class="phone-menu-item whatsapp" style="display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;font-size:15px;font-weight:600;border:none;background:none;width:100%;text-align:left;color:#25D366"><span class="material-icons-round">chat</span> WhatsApp</button><button class="phone-menu-item sms" style="display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;font-size:15px;font-weight:600;border:none;background:none;width:100%;text-align:left;color:#3B82F6"><span class="material-icons-round">sms</span> SMS</button>';
+      var rect = actionBtn.getBoundingClientRect(); menu.style.top = (rect.bottom + 5) + 'px'; menu.style.left = Math.max(10, rect.left - 80) + 'px';
+      document.body.appendChild(menu);
+      var cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+      menu.querySelector('.whatsapp').onclick = function(ev) { ev.stopPropagation(); window.open('https://wa.me/' + cleanPhone.replace(/^\+/, ''), '_blank'); menu.remove(); };
+      menu.querySelector('.sms').onclick = function(ev) { ev.stopPropagation(); window.location.href = 'sms:' + cleanPhone; menu.remove(); };
+      setTimeout(function() { document.addEventListener('click', function closeMenu(ev) { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', closeMenu); } }); }, 10);
+    }
+  });
+  $("saveBtn").onclick = saveProspect;
+  $("searchInput").oninput = function() { S.search = this.value; renderList(); };
+  $("filterPills").onclick = function(e) {
+    var p = e.target.closest(".pill"); if (!p) return;
+    document.querySelectorAll("#filterPills .pill").forEach(function(x) { x.classList.remove("pill-active"); x.classList.add("pill-inactive"); });
+    p.classList.add("pill-active"); p.classList.remove("pill-inactive"); S.filter = p.dataset.filter; renderList();
+  };
+  $("editStatusTags").onclick = function(e) { var t = e.target.closest(".tag"); if (t) { S.editStatus = t.dataset.status; renderEditTags(); } };
+  $("editStageTags").onclick = function(e) { var t = e.target.closest(".stage-tag"); if (t) { S.editStage = t.dataset.stage; renderEditTags(); } };
+  $("updateBtn").onclick = updateProspect;
+  $("deleteBtn").onclick = deleteProspect;
+  $("avatarBtn").onclick = function() { $("userModal").classList.add("show"); };
+  $("closeUser").onclick = function() { $("userModal").classList.remove("show"); };
+  $("userModal").onclick = function(e) { if (e.target === this) this.classList.remove("show"); };
+  $("teamBtn").onclick = function() { $("userModal").classList.remove("show"); loadTeam(); $("teamModal").classList.add("show"); };
+  $("closeTeam").onclick = function() { $("teamModal").classList.remove("show"); };
+  $("teamModal").onclick = function(e) { if (e.target === this) this.classList.remove("show"); };
+  $("inviteBtn").onclick = invite;
+  $("passwordBtn").onclick = function() { $("userModal").classList.remove("show"); $("passwordModal").classList.add("show"); };
+  $("closePassword").onclick = function() { $("passwordModal").classList.remove("show"); };
+  $("passwordModal").onclick = function(e) { if (e.target === this) this.classList.remove("show"); };
+  $("updatePasswordBtn").onclick = function() {
+    var pw = $("newPassword").value;
+    if (pw !== $("confirmPassword").value) { toast("No match", true); return; }
+    if (pw.length < 6) { toast("Too short", true); return; }
+    db.auth.updateUser({ password: pw }).then(function() { toast("Updated!"); $("passwordModal").classList.remove("show"); }).catch(function(e) { toast(e.message, true); });
+  };
+  $("closeEdit").onclick = function() { $("editModal").classList.remove("show"); };
+  $("editModal").onclick = function(e) { if (e.target === this) this.classList.remove("show"); };
+  $("editVisitBtn").onclick = function() { var l = $("editLink").value.trim(); if (l) window.open(l.indexOf("http") === 0 ? l : "https://" + l, "_blank"); };
+  if ($("editNotesVoiceBtn")) setupVoice($("editNotesVoiceBtn"), $("editNotes"));
+  setupVoice($("nameVoiceBtn"), $("prospectName"));
+  setupVoice($("notesVoiceBtn"), $("notes"));
+  $("adminBtn").onclick = function() { $("userModal").classList.remove("show"); loadTenants(); $("adminModal").classList.add("show"); };
+  $("closeAdmin").onclick = function() { $("adminModal").classList.remove("show"); };
+  $("adminModal").onclick = function(e) { if (e.target === this) this.classList.remove("show"); };
+  $("closeStage").onclick = function() { $("stageModal").classList.remove("show"); };
+  $("stageModal").onclick = function(e) { if (e.target === this) this.classList.remove("show"); };
+  $("logoutBtn").onclick = function() {
+    db.auth.signOut().then(function() { S.user = null; S.team = null; S.prospects = []; show("authScreen"); $("userModal").classList.remove("show"); });
+  };
+  renderStatusTags(); renderStageTags();
+
+  var WHISPER_WEBHOOK = "https://moshbari.cloud/webhook/prospectsnapapp10jan26";
+  function setupVoice(btn, input) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { btn.style.display = "none"; return; }
+    var mediaRecorder = null, audioChunks = [], isRecording = false;
+    btn.onclick = function() {
+      if (isRecording) { if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop(); return; }
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+        isRecording = true; audioChunks = []; btn.style.background = "#FEE2E2"; btn.style.color = "#DC2626";
+        mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+        mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = function() {
+          isRecording = false; btn.style.background = "#F1F5F9"; btn.style.color = "#64748B";
+          stream.getTracks().forEach(function(track) { track.stop(); });
+          if (audioChunks.length === 0) return;
+          var audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+          btn.innerHTML = '<span class="material-icons-round animate-spin">sync</span>';
+          var formData = new FormData(); formData.append("data", audioBlob, "audio.webm");
+          fetch(WHISPER_WEBHOOK, { method: "POST", body: formData }).then(function(response) {
+            if (!response.ok) throw new Error("Transcription failed"); return response.json();
+          }).then(function(data) {
+            var transcript = data.text || "";
+            if (transcript) { input.value = input.tagName === "TEXTAREA" ? (input.value ? input.value + " " + transcript : transcript) : transcript; toast("Transcribed!"); }
+            else toast("No speech detected", true);
+          }).catch(function() { toast("Transcription failed", true); }).finally(function() { btn.innerHTML = '<span class="material-icons-round">mic</span>'; });
+        };
+        mediaRecorder.start();
+      }).catch(function() { toast("Microphone access denied", true); });
+    };
+  }
+});
+
+init();
+</script>
+</body>
+</html>
