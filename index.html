@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#F9FAFB" id="themeColor">
 <title>ProspectSnap</title>
-<!-- v3.3 - Fix tab navigation scroll bug -->
+<!-- v3.4 - Add Meta Ads lead source -->
 <!-- Preconnect to external origins for faster resource loading -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -168,6 +168,7 @@ html.dark .source-tag.inactive{background:#1E293B;border-color:#334155;color:#64
 .source-tag.active[data-source="email"]{background:#EA580C;border-color:#EA580C;color:#fff}
 .source-tag.active[data-source="referral"]{background:#8B5CF6;border-color:#8B5CF6;color:#fff}
 .source-tag.active[data-source="cold_call"]{background:#0891B2;border-color:#0891B2;color:#fff}
+.source-tag.active[data-source="meta_ads"]{background:#F97316;border-color:#F97316;color:#fff}
 .source-tag.active[data-source="website"]{background:#059669;border-color:#059669;color:#fff}
 .source-tag.active[data-source="other"]{background:#64748B;border-color:#64748B;color:#fff}
 .badge-source{font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:0.5px}
@@ -181,6 +182,7 @@ html.dark .badge-source-tiktok{background:rgba(255,255,255,0.1);color:#fff}
 .badge-source-email{background:rgba(234,88,12,0.1);color:#EA580C}
 .badge-source-referral{background:rgba(139,92,246,0.1);color:#8B5CF6}
 .badge-source-cold_call{background:rgba(8,145,178,0.1);color:#0891B2}
+.badge-source-meta_ads{background:rgba(249,115,22,0.1);color:#F97316}
 .badge-source-website{background:rgba(5,150,105,0.1);color:#059669}
 .badge-source-other{background:rgba(100,116,139,0.1);color:#64748B}
 .source-auto-badge{font-size:10px;background:rgba(139,92,246,0.1);color:#8B5CF6;padding:2px 8px;border-radius:6px;font-weight:600;margin-left:4px}
@@ -407,6 +409,7 @@ html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 <button type="button" class="source-tag inactive" data-source="email">📧 Email</button>
 <button type="button" class="source-tag inactive" data-source="referral">🤝 Referral</button>
 <button type="button" class="source-tag inactive" data-source="cold_call">📞 Cold Call</button>
+<button type="button" class="source-tag inactive" data-source="meta_ads">📢 Meta Ads</button>
 <button type="button" class="source-tag inactive" data-source="website">🌐 Website</button>
 <button type="button" class="source-tag inactive" data-source="other">📌 Other</button>
 </div>
@@ -487,6 +490,7 @@ html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 <button class="pill pill-inactive" data-source-filter="email" style="font-size:12px;padding:8px 14px">📧 Email</button>
 <button class="pill pill-inactive" data-source-filter="referral" style="font-size:12px;padding:8px 14px">🤝 Ref</button>
 <button class="pill pill-inactive" data-source-filter="cold_call" style="font-size:12px;padding:8px 14px">📞 Call</button>
+<button class="pill pill-inactive" data-source-filter="meta_ads" style="font-size:12px;padding:8px 14px">📢 Ads</button>
 <button class="pill pill-inactive" data-source-filter="website" style="font-size:12px;padding:8px 14px">🌐 Web</button>
 <button class="pill pill-inactive" data-source-filter="other" style="font-size:12px;padding:8px 14px">📌 Other</button>
 </div>
@@ -663,6 +667,7 @@ html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 <button type="button" class="source-tag inactive" data-source="email">📧 Email</button>
 <button type="button" class="source-tag inactive" data-source="referral">🤝 Referral</button>
 <button type="button" class="source-tag inactive" data-source="cold_call">📞 Cold Call</button>
+<button type="button" class="source-tag inactive" data-source="meta_ads">📢 Meta Ads</button>
 <button type="button" class="source-tag inactive" data-source="website">🌐 Website</button>
 <button type="button" class="source-tag inactive" data-source="other">📌 Other</button>
 </div>
@@ -756,7 +761,7 @@ html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 </div>
 
 <script>
-console.log("Starting ProspectSnap v3.3...");
+console.log("Starting ProspectSnap v3.4...");
 
 var SUPABASE_URL = "https://yuqeqricenygpsrdfswx.supabase.co";
 var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1cWVxcmljZW55Z3BzcmRmc3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwOTY1MjIsImV4cCI6MjA3MjY3MjUyMn0.yK9xBR-wk5wtBVk6_ne2qqlbYN1dIpM9kVdGWPEBLG8";
@@ -821,7 +826,7 @@ function renderSourceTags(containerId, activeSource) {
 }
 
 function getSourceLabel(source) {
-  var labels = {instagram:"Instagram",facebook:"Facebook",linkedin:"LinkedIn",whatsapp:"WhatsApp",twitter:"X/Twitter",tiktok:"TikTok",email:"Email",referral:"Referral",cold_call:"Cold Call",website:"Website",other:"Other"};
+  var labels = {instagram:"Instagram",facebook:"Facebook",linkedin:"LinkedIn",whatsapp:"WhatsApp",twitter:"X/Twitter",tiktok:"TikTok",email:"Email",referral:"Referral",cold_call:"Cold Call",meta_ads:"Meta Ads",website:"Website",other:"Other"};
   return labels[source] || "";
 }
 
