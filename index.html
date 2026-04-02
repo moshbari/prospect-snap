@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#F9FAFB" id="themeColor">
 <title>ProspectSnap</title>
-<!-- v3.2 - Performance optimized -->
+<!-- v3.3 - Fix tab navigation scroll bug -->
 <!-- Preconnect to external origins for faster resource loading -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -756,7 +756,7 @@ html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 </div>
 
 <script>
-console.log("Starting ProspectSnap v3.2...");
+console.log("Starting ProspectSnap v3.3...");
 
 var SUPABASE_URL = "https://yuqeqricenygpsrdfswx.supabase.co";
 var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1cWVxcmljZW55Z3BzcmRmc3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwOTY1MjIsImV4cCI6MjA3MjY3MjUyMn0.yK9xBR-wk5wtBVk6_ne2qqlbYN1dIpM9kVdGWPEBLG8";
@@ -849,6 +849,7 @@ function switchTab(tabName) {
   $(tabName + "Content").classList.add("active");
   $("fabContainer").style.display = tabName === "capture" ? "none" : "block";
   $("saveBtnContainer").style.display = tabName === "capture" ? "block" : "none";
+  window.scrollTo(0, 0);
 }
 
 function toast(msg, isErr) {
