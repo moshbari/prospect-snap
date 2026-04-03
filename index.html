@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#F9FAFB" id="themeColor">
 <title>ProspectSnap</title>
-<!-- v3.4 - Add Meta Ads lead source -->
+<!-- v3.5 - Clickable activity items with prospect links -->
 <!-- Preconnect to external origins for faster resource loading -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,6 +45,9 @@ html.dark .stat-card{background:#1E293B;border-color:#334155}
 html.dark .prospect-card{background:#1E293B;border-color:#334155}
 .activity-card{background:#fff;padding:16px;border-radius:16px;border:1px solid #F1F5F9}
 html.dark .activity-card{background:#1E293B;border-color:#334155}
+.activity-clickable{cursor:pointer;transition:all 0.15s ease}
+.activity-clickable:active{transform:scale(0.98);background:#F8FAFC}
+html.dark .activity-clickable:active{background:#253349}
 .tag{padding:10px 16px;border-radius:9999px;font-size:14px;font-weight:600;border:1px solid;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .tag-hot{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.2);color:#DC2626}
 .tag-hot.active{background:#DC2626;border-color:#DC2626;color:#fff}
@@ -761,7 +764,7 @@ html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 </div>
 
 <script>
-console.log("Starting ProspectSnap v3.4...");
+console.log("Starting ProspectSnap v3.5...");
 
 var SUPABASE_URL = "https://yuqeqricenygpsrdfswx.supabase.co";
 var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1cWVxcmljZW55Z3BzcmRmc3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwOTY1MjIsImV4cCI6MjA3MjY3MjUyMn0.yK9xBR-wk5wtBVk6_ne2qqlbYN1dIpM9kVdGWPEBLG8";
@@ -1081,10 +1084,14 @@ function renderActivity() {
     S.activities.forEach(function(a) {
       var init = (a.user_name || "?")[0].toUpperCase();
       var desc = a.action_detail || a.action_details || a.description || "made a change";
-      html += "<div class='activity-card flex gap-4'>";
+      var pid = a.prospect_id;
+      var canLink = pid && a.action_type !== "prospect_deleted" && S.prospects.some(function(p) { return p.id === pid; });
+      html += "<div class='activity-card flex gap-4" + (canLink ? " activity-clickable" : "") + "'" + (canLink ? " onclick='editProspect(\"" + pid + "\")'" : "") + ">";
       html += "<div class='w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold'>" + init + "</div>";
       html += "<div class='flex-1'><p class='text-sm'><b>" + (a.user_name || "Someone") + "</b> <span class='text-slate-500'>" + desc + "</span></p>";
-      html += "<p class='text-xs text-slate-400'>" + timeAgo(a.created_at) + "</p></div></div>";
+      html += "<p class='text-xs text-slate-400'>" + timeAgo(a.created_at) + "</p></div>";
+      if (canLink) html += "<div class='flex items-center text-slate-400'><span class='material-icons-round' style='font-size:18px'>chevron_right</span></div>";
+      html += "</div>";
     });
   }
   $("activityList").innerHTML = html;
@@ -1230,7 +1237,8 @@ function saveProspect() {
     S.prospects.unshift(r.data);
     return db.from("prospect_snap_activity").insert({
       team_id: S.team.id, user_id: S.user.id, user_name: S.member ? S.member.display_name : "Unknown",
-      action_type: "prospect_added", action_detail: "added " + (name || "a prospect")
+      action_type: "prospect_added", action_detail: "added " + (name || "a prospect"),
+      prospect_id: r.data.id, prospect_name: name || "a prospect"
     }).select().single();
   }).then(function(activityResult) {
     if (activityResult.data) { S.activities.unshift(activityResult.data); if (S.activities.length > 50) S.activities.pop(); renderActivity(); }
@@ -1273,7 +1281,8 @@ function updateProspect() {
     if (idx !== -1) S.prospects[idx] = r.data;
     return db.from("prospect_snap_activity").insert({
       team_id: S.team.id, user_id: S.user.id, user_name: S.member ? S.member.display_name : "Unknown",
-      action_type: "prospect_updated", action_detail: "updated " + ($("editName").value.trim() || "a prospect")
+      action_type: "prospect_updated", action_detail: "updated " + ($("editName").value.trim() || "a prospect"),
+      prospect_id: id, prospect_name: $("editName").value.trim() || "a prospect"
     }).select().single();
   }).then(function(activityResult) {
     if (activityResult.data) { S.activities.unshift(activityResult.data); if (S.activities.length > 50) S.activities.pop(); renderActivity(); }
@@ -1288,7 +1297,8 @@ function deleteProspect() {
     S.prospects = S.prospects.filter(function(x) { return x.id !== id; });
     return db.from("prospect_snap_activity").insert({
       team_id: S.team.id, user_id: S.user.id, user_name: S.member ? S.member.display_name : "Unknown",
-      action_type: "prospect_deleted", action_detail: "deleted " + (name || "a prospect")
+      action_type: "prospect_deleted", action_detail: "deleted " + (name || "a prospect"),
+      prospect_id: null, prospect_name: name || "a prospect"
     }).select().single();
   }).then(function(activityResult) {
     if (activityResult && activityResult.data) { S.activities.unshift(activityResult.data); if (S.activities.length > 50) S.activities.pop(); renderActivity(); }
