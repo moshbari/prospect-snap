@@ -44,6 +44,7 @@ Tables used:
 
 ## Version History
 
+- **v3.6** — Last action tracking on prospect cards (action type + relative date pill, follow-up date pill, edit form fields)
 - **v3.1** — Email follow-up system, phone numbers with WhatsApp/SMS, smart paste, pipeline stage styling
 - **v3.0** — Redesign with light/dark theme, activity feed fixes
 - **v2.0** — Multi-tenant SaaS architecture, team management

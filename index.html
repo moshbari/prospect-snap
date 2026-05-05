@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#F9FAFB" id="themeColor">
 <title>ProspectSnap</title>
-<!-- v3.5 - Clickable activity items with prospect links -->
+<!-- v3.6 - Last action tracking on prospect cards -->
 <!-- Preconnect to external origins for faster resource loading -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,6 +190,14 @@ html.dark .badge-source-tiktok{background:rgba(255,255,255,0.1);color:#fff}
 .badge-source-other{background:rgba(100,116,139,0.1);color:#64748B}
 .source-auto-badge{font-size:10px;background:rgba(139,92,246,0.1);color:#8B5CF6;padding:2px 8px;border-radius:6px;font-weight:600;margin-left:4px}
 html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
+.action-tag{padding:8px 14px;border-radius:9999px;font-size:12px;font-weight:600;border:1px solid;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all 0.2s}
+.action-tag.inactive{background:#F1F5F9;border-color:#E2E8F0;color:#94A3B8;opacity:0.7}
+html.dark .action-tag.inactive{background:#1E293B;border-color:#334155;color:#64748B}
+.action-tag.active{background:#0F172A;border-color:#0F172A;color:#fff;opacity:1}
+html.dark .action-tag.active{background:#F1F5F9;border-color:#F1F5F9;color:#0F172A}
+.last-action-pill,.follow-up-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;background:#F1F5F9;color:#475569;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.dark .last-action-pill,html.dark .follow-up-pill{background:#1E293B;color:#94A3B8}
+.action-other-input{margin-top:8px;font-size:13px}
 </style>
 </head>
 <body>
@@ -448,6 +456,22 @@ html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 </div>
 </div>
 <div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Last Action</label>
+<div class="flex flex-wrap gap-2" id="actionTags">
+<button type="button" class="action-tag inactive" data-action="chatted">💬 Chatted</button>
+<button type="button" class="action-tag inactive" data-action="watched_webinar">📺 Watched Webinar</button>
+<button type="button" class="action-tag inactive" data-action="sent_sales_page">📄 Sent Sales Page</button>
+<button type="button" class="action-tag inactive" data-action="had_call">📞 Had a Call</button>
+<button type="button" class="action-tag inactive" data-action="booked_call">📅 Booked a Call</button>
+<button type="button" class="action-tag inactive" data-action="replied_email">✉️ Replied to Email</button>
+<button type="button" class="action-tag inactive" data-action="ghosted">👻 Ghosted</button>
+<button type="button" class="action-tag inactive" data-action="other">📌 Other</button>
+</div>
+<input class="input-field action-other-input" id="actionOther" type="text" placeholder="Describe the action…" style="display:none">
+<label class="block text-xs font-bold text-slate-400 uppercase mt-3 mb-2">Last Action Date</label>
+<input class="input-field" id="lastActionDate" type="date">
+</div>
+<div>
 <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Notes</label>
 <div class="flex gap-2">
 <textarea class="input-field resize-none flex-1" id="notes" placeholder="What did you talk about?" rows="3"></textarea>
@@ -694,6 +718,22 @@ html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 </div>
 </div>
 <div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Follow-up</label><input class="input-field" id="editFollowup" type="date"></div>
+<div>
+<label class="block text-xs font-bold text-slate-400 uppercase mb-2">Last Action</label>
+<div class="flex flex-wrap gap-2" id="editActionTags">
+<button type="button" class="action-tag inactive" data-action="chatted">💬 Chatted</button>
+<button type="button" class="action-tag inactive" data-action="watched_webinar">📺 Watched Webinar</button>
+<button type="button" class="action-tag inactive" data-action="sent_sales_page">📄 Sent Sales Page</button>
+<button type="button" class="action-tag inactive" data-action="had_call">📞 Had a Call</button>
+<button type="button" class="action-tag inactive" data-action="booked_call">📅 Booked a Call</button>
+<button type="button" class="action-tag inactive" data-action="replied_email">✉️ Replied to Email</button>
+<button type="button" class="action-tag inactive" data-action="ghosted">👻 Ghosted</button>
+<button type="button" class="action-tag inactive" data-action="other">📌 Other</button>
+</div>
+<input class="input-field action-other-input" id="editActionOther" type="text" placeholder="Describe the action…" style="display:none">
+<label class="block text-xs font-bold text-slate-400 uppercase mt-3 mb-2">Last Action Date</label>
+<input class="input-field" id="editLastActionDate" type="date">
+</div>
 <div><label class="block text-xs font-bold text-slate-400 uppercase mb-2">Notes</label>
 <div class="flex gap-2">
 <textarea class="input-field resize-none flex-1" id="editNotes" rows="3"></textarea>
@@ -764,7 +804,7 @@ html.dark .source-auto-badge{background:rgba(139,92,246,0.2);color:#A78BFA}
 </div>
 
 <script>
-console.log("Starting ProspectSnap v3.5...");
+console.log("Starting ProspectSnap v3.6...");
 
 var SUPABASE_URL = "https://yuqeqricenygpsrdfswx.supabase.co";
 var SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1cWVxcmljZW55Z3BzcmRmc3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwOTY1MjIsImV4cCI6MjA3MjY3MjUyMn0.yK9xBR-wk5wtBVk6_ne2qqlbYN1dIpM9kVdGWPEBLG8";
@@ -797,9 +837,13 @@ var S = {
   status: "cold",
   stage: "new",
   source: "",
+  lastAction: "",
+  lastActionOther: "",
   editStatus: "cold",
   editStage: "new",
   editSource: "",
+  editLastAction: "",
+  editLastActionOther: "",
   theme: "light",
   isPlatformAdmin: false,
   tenants: []
@@ -832,6 +876,66 @@ function getSourceLabel(source) {
   var labels = {instagram:"Instagram",facebook:"Facebook",linkedin:"LinkedIn",whatsapp:"WhatsApp",twitter:"X/Twitter",tiktok:"TikTok",email:"Email",referral:"Referral",cold_call:"Cold Call",meta_ads:"Meta Ads",website:"Website",other:"Other"};
   return labels[source] || "";
 }
+
+var ACTION_LABELS = {
+  chatted: "💬 Chatted",
+  watched_webinar: "📺 Watched Webinar",
+  sent_sales_page: "📄 Sent Sales Page",
+  had_call: "📞 Had a Call",
+  booked_call: "📅 Booked a Call",
+  replied_email: "✉️ Replied to Email",
+  ghosted: "👻 Ghosted",
+  other: "📌 Other"
+};
+function getActionLabel(action, otherText) {
+  if (!action) return "";
+  if (action === "other") return "📌 " + (otherText || "Other");
+  // "other:Custom text" stored format support
+  if (action.indexOf("other:") === 0) return "📌 " + action.substring(6);
+  return ACTION_LABELS[action] || action;
+}
+function renderActionTags(containerId, activeAction) {
+  var key = activeAction && activeAction.indexOf("other:") === 0 ? "other" : activeAction;
+  document.querySelectorAll("#" + containerId + " .action-tag").forEach(function(t) {
+    if (t.dataset.action === key) {
+      t.classList.add("active"); t.classList.remove("inactive");
+    } else {
+      t.classList.remove("active"); t.classList.add("inactive");
+    }
+  });
+}
+function formatRelativeDate(dateStr) {
+  if (!dateStr) return "";
+  var d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  var now = new Date();
+  var diffMs = now.getTime() - d.getTime();
+  var diffDays = Math.floor(diffMs / 86400000);
+  if (diffDays < 0) {
+    var ahead = -diffDays;
+    if (ahead === 1) return "tomorrow";
+    if (ahead < 7) return "in " + ahead + "d";
+    if (ahead < 30) return "in " + Math.floor(ahead/7) + "w";
+    if (ahead < 365) return "in " + Math.floor(ahead/30) + "mo";
+    return "in " + Math.floor(ahead/365) + "y";
+  }
+  if (diffDays === 0) return "today";
+  if (diffDays === 1) return "yesterday";
+  if (diffDays < 7) return diffDays + "d ago";
+  if (diffDays < 30) return Math.floor(diffDays/7) + "w ago";
+  if (diffDays < 365) return Math.floor(diffDays/30) + "mo ago";
+  return Math.floor(diffDays/365) + "y ago";
+}
+function formatShortDate(dateStr) {
+  if (!dateStr) return "";
+  var d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var s = months[d.getMonth()] + " " + d.getDate();
+  if (d.getFullYear() !== new Date().getFullYear()) s += ", " + d.getFullYear();
+  return s;
+}
+function todayStr() { return new Date().toISOString().split("T")[0]; }
 
 function applyTheme() {
   var isDark = S.theme === "dark";
@@ -1022,12 +1126,24 @@ function renderList() {
       html += "<p class='text-sm text-slate-400 truncate'>" + (p.profile_link || "No link") + "</p>";
       if (emails.length > 0) { html += renderEmailChips(emails); }
       if (phones.length > 0) { html += renderPhoneChips(phones); }
-      html += "<div class='flex gap-2 mt-2'>";
+      html += "<div class='flex flex-wrap gap-2 mt-2'>";
       html += "<span class='badge badge-" + (p.status || "cold") + "'>" + (p.status || "cold").toUpperCase() + "</span>";
       if (p.source) html += "<span class='badge-source badge-source-" + p.source + "'>" + getSourceLabel(p.source) + "</span>";
       if (p.follow_up_date && p.follow_up_date < today) html += "<span class='badge badge-overdue'>OVERDUE</span>";
       if (p.follow_up_date && p.follow_up_date === today) html += "<span class='badge badge-today'>TODAY</span>";
-      html += "</div></div>";
+      html += "</div>";
+      if (p.last_action || p.follow_up_date) {
+        html += "<div class='flex flex-wrap gap-2 mt-2'>";
+        if (p.last_action) {
+          var rel = formatRelativeDate(p.last_action_date);
+          html += "<span class='last-action-pill' title='Last action'>" + getActionLabel(p.last_action) + (rel ? " · " + rel : "") + "</span>";
+        }
+        if (p.follow_up_date) {
+          html += "<span class='follow-up-pill' title='Follow-up date'>⏰ Follow up · " + formatShortDate(p.follow_up_date) + "</span>";
+        }
+        html += "</div>";
+      }
+      html += "</div>";
       html += "<span class='material-icons-round text-slate-300 flex-shrink-0'>chevron_right</span>";
       html += "</div></div>";
     });
@@ -1069,6 +1185,10 @@ function showFilteredProspects(title, list) {
       html += "<div class='flex-1'><p class='font-bold'>" + (p.name || "Unknown") + "</p>";
       html += "<p class='text-xs text-slate-500'>" + (p.follow_up_date || "No date") + "</p>";
       if ((p.emails || []).length > 0) { html += renderEmailChips(p.emails); }
+      if (p.last_action) {
+        var rel2 = formatRelativeDate(p.last_action_date);
+        html += "<div class='mt-2'><span class='last-action-pill'>" + getActionLabel(p.last_action) + (rel2 ? " · " + rel2 : "") + "</span></div>";
+      }
       html += "</div></div></div>";
     });
   }
@@ -1226,11 +1346,19 @@ function saveProspect() {
   var emails = getEmailsFromForm();
   var phones = getPhonesFromForm();
   if (!link && emails.length === 0 && phones.length === 0) { toast("Enter at least one contact (profile, email, or phone)", true); return; }
+  var lastAction = S.lastAction || "";
+  if (lastAction === "other") {
+    var otherTxt = ($("actionOther").value || "").trim();
+    lastAction = otherTxt ? "other:" + otherTxt : "";
+  }
+  var lastActionDate = $("lastActionDate").value || (lastAction ? todayStr() : "");
   $("saveBtn").disabled = true;
   db.from("prospect_snap_prospects").insert({
     team_id: S.team.id, profile_link: link || null, name: name, status: S.status, pipeline_stage: S.stage,
     source: S.source || null,
     notes: notes, follow_up_date: followup || null, emails: emails, phones: phones,
+    last_action: lastAction || null,
+    last_action_date: lastActionDate || null,
     saved_by: S.user.id, saved_by_name: S.member ? S.member.display_name : "Unknown"
   }).select().single().then(function(r) {
     if (r.error) throw r.error;
@@ -1244,6 +1372,8 @@ function saveProspect() {
     if (activityResult.data) { S.activities.unshift(activityResult.data); if (S.activities.length > 50) S.activities.pop(); renderActivity(); }
     toast("Saved!");
     $("profileLink").value = ""; $("prospectName").value = ""; $("notes").value = ""; $("followupDate").value = "";
+    $("lastActionDate").value = ""; $("actionOther").value = ""; $("actionOther").style.display = "none";
+    S.lastAction = ""; S.lastActionOther = ""; renderActionTags("actionTags", "");
     S.source = ""; renderSourceTags("sourceTags", ""); $("sourceAutoHint").style.display = "none";
     clearEmailForm(); clearPhoneForm(); updateStats(); renderList(); renderPipeline(); switchTab("list");
   }).catch(function(e) { toast(e.message || "Error", true); }).finally(function() { $("saveBtn").disabled = false; });
@@ -1255,6 +1385,12 @@ window.editProspect = function(id) {
   $("editId").value = p.id; $("editLink").value = p.profile_link || ""; $("editName").value = p.name || "";
   $("editNotes").value = p.notes || ""; $("editFollowup").value = p.follow_up_date || "";
   S.editStatus = p.status || "cold"; S.editStage = p.pipeline_stage || "new"; S.editSource = p.source || "";
+  S.editLastAction = p.last_action || "";
+  S.editLastActionOther = (S.editLastAction.indexOf("other:") === 0) ? S.editLastAction.substring(6) : "";
+  $("editActionOther").value = S.editLastActionOther;
+  $("editActionOther").style.display = (S.editLastAction.indexOf("other:") === 0) ? "block" : "none";
+  $("editLastActionDate").value = p.last_action_date ? new Date(p.last_action_date).toISOString().split("T")[0] : "";
+  renderActionTags("editActionTags", S.editLastAction);
   setEditEmails(p.emails || []); setEditPhones(p.phones || []); renderEditTags(); renderSourceTags("editSourceTags", S.editSource);
   $("editModal").classList.add("show"); $("stageModal").classList.remove("show");
 };
@@ -1270,11 +1406,19 @@ function renderEditTags() {
 function updateProspect() {
   var id = $("editId").value;
   $("updateBtn").disabled = true;
+  var editAction = S.editLastAction || "";
+  if (editAction === "other") {
+    var otherTxt = ($("editActionOther").value || "").trim();
+    editAction = otherTxt ? "other:" + otherTxt : "";
+  }
+  var editActionDate = $("editLastActionDate").value || (editAction ? todayStr() : "");
   db.from("prospect_snap_prospects").update({
     profile_link: $("editLink").value.trim(), name: $("editName").value.trim(), status: S.editStatus,
     pipeline_stage: S.editStage, source: S.editSource || null,
     notes: $("editNotes").value.trim(), follow_up_date: $("editFollowup").value || null,
-    emails: getEditEmailsFromForm(), phones: getEditPhonesFromForm()
+    emails: getEditEmailsFromForm(), phones: getEditPhonesFromForm(),
+    last_action: editAction || null,
+    last_action_date: editActionDate || null
   }).eq("id", id).select().single().then(function(r) {
     if (r.error) throw r.error;
     var idx = S.prospects.findIndex(function(x) { return x.id === id; });
@@ -1429,6 +1573,34 @@ document.addEventListener("DOMContentLoaded", function() {
   };
   $("sourceTags").onclick = function(e) { var t = e.target.closest(".source-tag"); if (t) { S.source = (S.source === t.dataset.source) ? "" : t.dataset.source; renderSourceTags("sourceTags", S.source); $("sourceAutoHint").style.display = "none"; } };
   $("editSourceTags").onclick = function(e) { var t = e.target.closest(".source-tag"); if (t) { S.editSource = (S.editSource === t.dataset.source) ? "" : t.dataset.source; renderSourceTags("editSourceTags", S.editSource); } };
+  $("actionTags").onclick = function(e) {
+    var t = e.target.closest(".action-tag"); if (!t) return;
+    var picked = t.dataset.action;
+    var currentKey = (S.lastAction && S.lastAction.indexOf("other:") === 0) ? "other" : S.lastAction;
+    if (currentKey === picked) {
+      S.lastAction = ""; $("actionOther").style.display = "none"; $("actionOther").value = "";
+      $("lastActionDate").value = "";
+    } else {
+      S.lastAction = picked;
+      $("actionOther").style.display = (picked === "other") ? "block" : "none";
+      if (!$("lastActionDate").value) $("lastActionDate").value = todayStr();
+    }
+    renderActionTags("actionTags", S.lastAction);
+  };
+  $("editActionTags").onclick = function(e) {
+    var t = e.target.closest(".action-tag"); if (!t) return;
+    var picked = t.dataset.action;
+    var currentKey = (S.editLastAction && S.editLastAction.indexOf("other:") === 0) ? "other" : S.editLastAction;
+    if (currentKey === picked) {
+      S.editLastAction = ""; $("editActionOther").style.display = "none"; $("editActionOther").value = "";
+      $("editLastActionDate").value = "";
+    } else {
+      S.editLastAction = picked;
+      $("editActionOther").style.display = (picked === "other") ? "block" : "none";
+      if (!$("editLastActionDate").value) $("editLastActionDate").value = todayStr();
+    }
+    renderActionTags("editActionTags", S.editLastAction);
+  };
   // Auto-detect source from profile link input
   $("profileLink").addEventListener("input", function() {
     var detected = detectSource(this.value.trim());
