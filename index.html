@@ -1379,6 +1379,16 @@ function saveProspect() {
   }).catch(function(e) { toast(e.message || "Error", true); }).finally(function() { $("saveBtn").disabled = false; });
 }
 
+function clearCaptureForm() {
+  $("profileLink").value = ""; $("prospectName").value = ""; $("notes").value = ""; $("followupDate").value = "";
+  $("lastActionDate").value = ""; $("actionOther").value = ""; $("actionOther").style.display = "none";
+  S.lastAction = ""; S.lastActionOther = ""; renderActionTags("actionTags", "");
+  S.source = ""; renderSourceTags("sourceTags", ""); $("sourceAutoHint").style.display = "none";
+  S.status = "cold"; renderStatusTags();
+  S.stage = "new"; renderStageTags();
+  clearEmailForm(); clearPhoneForm();
+}
+
 window.editProspect = function(id) {
   var p = S.prospects.find(function(x) { return x.id === id; });
   if (!p) return;
@@ -1543,7 +1553,7 @@ function init() {
 document.addEventListener("DOMContentLoaded", function() {
   $("themeToggle").onclick = function() { S.theme = S.theme === "dark" ? "light" : "dark"; localStorage.setItem("ps_theme", S.theme); applyTheme(); };
   document.querySelectorAll(".nav-btn").forEach(function(b) { b.onclick = function() { switchTab(b.dataset.tab); }; });
-  $("fabBtn").onclick = function() { switchTab("capture"); };
+  $("fabBtn").onclick = function() { clearCaptureForm(); switchTab("capture"); };
   $("viewAllActivity").onclick = function() { switchTab("activity"); };
   $("loginForm").onsubmit = function(e) {
     e.preventDefault(); $("loginBtn").disabled = true;
