@@ -6,7 +6,7 @@ A mobile-first SaaS application for capturing and managing leads with team colla
 
 - **Lead Capture** — Save prospects from Instagram, email, WhatsApp, or any source
 - **Multi-channel Contacts** — Emails, phone numbers with WhatsApp/SMS integration
-- **Smart Paste** — Auto-parses "Name <email>" format from clipboard
+- **Smart Paste** — One button reads your clipboard and routes name, email, phone, or social link into the right field automatically
 - **Pipeline Management** — Track leads through New → Contacted → Replied → Booked → Customer
 - **Team Collaboration** — Invite team members, shared activity feed
 - **Voice Input** — Dictate names and notes via OpenAI Whisper
